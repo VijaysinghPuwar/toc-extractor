@@ -179,9 +179,4 @@ Use only on content **you own** or **have permission** to access. Respect each s
 
 PRs welcome! Keep changes focused, document behavior, and do **not** commit large binaries or site-specific bypass logic.
 
----
-
-## License
-
-MIT — see `LICENSE`.
 ****
