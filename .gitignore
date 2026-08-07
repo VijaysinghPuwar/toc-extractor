@@ -1,0 +1,36 @@
+# Browser session state. These hold real cookies for sites you logged into.
+.pw_profile/
+_pw_profile/
+*.storage.json
+
+# Extracted content
+downloads/
+output/
+pw_output/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Playwright
+playwright/.cache/
+playwright-report/
+test-results/
+
+# Editors and OS
+.vscode/
+.idea/
+.claude/
+.DS_Store
