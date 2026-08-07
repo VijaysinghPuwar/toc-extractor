@@ -1,0 +1,1401 @@
+{
+  "_provenance": {
+    "python": "3.14.2",
+    "platform": "darwin",
+    "git_commit": "19da6527133249888a6aae2f5f3a0ed1256dc7ff",
+    "git_describe": "v1.0.0-2-g19da652",
+    "git_dirty": false,
+    "source_sha256": {
+      "toc_playwright.py": "1149e59220d853efc050c107666941da0aac4ec7d012b0703e2cbe33c2db2c98",
+      "cli_runner.py": "d5d7dae9db6343e238dbfa221546e2ed84337782b5308e5969fd297c153d1a6c"
+    }
+  },
+  "clean_text": {
+    "gui": {
+      "default": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nMore text.",
+          "utf8_bytes": 24,
+          "sha256": "3604c33ee0f1790fc9a5992b5fc362caf4cb6515fdffe1617ef9c23309d04629"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nEnd.",
+          "utf8_bytes": 10,
+          "sha256": "e183d3bc4dd8366b088bc72b40f9bd6d2eba6cc943e230169507e2223a31fbed"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. . After.",
+          "utf8_bytes": 16,
+          "sha256": "f3d463ce42fe383d13efdea6c45d9135f37a444aa60dddea40af0e3c7059f5e3"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ad Network here",
+          "utf8_bytes": 15,
+          "sha256": "1f9bb50f41460a3e115c742019d3022ee541e8ddfbd0fdd0d84c628af3a3cf60"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "removed",
+          "utf8_bytes": 7,
+          "sha256": "e1f79758cc42e6fe6037941205d1fbc37f5780f13aa077d0ba8287fd93cecd52"
+        },
+        "url_bare": {
+          "value": "See  for details.",
+          "utf8_bytes": 17,
+          "sha256": "90d03e2bc8d8646b540ac17331c74674d57e41bc7133f010cba5c6de74d3c90c"
+        },
+        "url_trailing_period": {
+          "value": "See  Next sentence.",
+          "utf8_bytes": 19,
+          "sha256": "8fe91bd40b38eac92d54c68b651a2d542ae02d13c06b0cb945e9659e41910f87"
+        },
+        "url_http": {
+          "value": "Visit  now",
+          "utf8_bytes": 10,
+          "sha256": "c4bf473e4c25b6300d46f722e9fe2422e00957b184c80c4f4c37907c51ff4325"
+        },
+        "url_in_parens": {
+          "value": "( after",
+          "utf8_bytes": 7,
+          "sha256": "ea0fcbcd8bc75e33658c616180bb3f6848098fad919b16d3ad5489ebc2debc9a"
+        },
+        "url_multiple": {
+          "value": "a  b  c",
+          "utf8_bytes": 7,
+          "sha256": "ef34af09b6cc8b808b1555c7f130e80304673bc1fff0acbf54319111c4efe38d"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nThen this.",
+          "utf8_bytes": 21,
+          "sha256": "9f689bf8a71588ae6b302cc7fc7211bb99aed2d8b100210226c6f11e9ab5c8eb"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nPara two.",
+          "utf8_bytes": 19,
+          "sha256": "a08b63165cb4dc627fdb82d1dd9fae7bac2d291367765a24f0cead8e35cf8716"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "include_links": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nMore text.",
+          "utf8_bytes": 24,
+          "sha256": "3604c33ee0f1790fc9a5992b5fc362caf4cb6515fdffe1617ef9c23309d04629"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nEnd.",
+          "utf8_bytes": 10,
+          "sha256": "e183d3bc4dd8366b088bc72b40f9bd6d2eba6cc943e230169507e2223a31fbed"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. . After.",
+          "utf8_bytes": 16,
+          "sha256": "f3d463ce42fe383d13efdea6c45d9135f37a444aa60dddea40af0e3c7059f5e3"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ad Network here",
+          "utf8_bytes": 15,
+          "sha256": "1f9bb50f41460a3e115c742019d3022ee541e8ddfbd0fdd0d84c628af3a3cf60"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "removed",
+          "utf8_bytes": 7,
+          "sha256": "e1f79758cc42e6fe6037941205d1fbc37f5780f13aa077d0ba8287fd93cecd52"
+        },
+        "url_bare": {
+          "value": "See https://example.com/page for details.",
+          "utf8_bytes": 41,
+          "sha256": "45829a4194bb07bece6262ea2786a55bfc3b20e63b6df10727218d0d98062ad2"
+        },
+        "url_trailing_period": {
+          "value": "See https://example.com/page. Next sentence.",
+          "utf8_bytes": 44,
+          "sha256": "85ee41ecf859102c49fd37c5a7a522702a4951a64b99303be0faa2ae7aba0877"
+        },
+        "url_http": {
+          "value": "Visit http://example.org now",
+          "utf8_bytes": 28,
+          "sha256": "c7c81e1ed0fb4251abcd91db8954e179833ad8beddf36025b14b26b60a8a4db7"
+        },
+        "url_in_parens": {
+          "value": "(https://example.com/x) after",
+          "utf8_bytes": 29,
+          "sha256": "ccdd1e116754701f922353369ebd2e828299b5af4d1ed601af03c92879613368"
+        },
+        "url_multiple": {
+          "value": "a https://a.com b http://b.com c",
+          "utf8_bytes": 32,
+          "sha256": "fa61b8cec6d95eb40df9322a262f8de1cc3b0202e004dcd45d1b6ebb8960b303"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nhttps://example.com/a\nThen this.",
+          "utf8_bytes": 43,
+          "sha256": "fbfa0d981274f5809f7295b54f347696f67e225f9fffe08cd7c93ecb7992b96c"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nPara two.",
+          "utf8_bytes": 19,
+          "sha256": "a08b63165cb4dc627fdb82d1dd9fae7bac2d291367765a24f0cead8e35cf8716"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "no_strip_ads": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nAds by PubRev\nMore text.",
+          "utf8_bytes": 38,
+          "sha256": "77abe154ddd0ea9cda3c8fdaa465a75af1ef5461086cfd543057d5b9a2306457"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nADS BY SomeVendor\nsponsored   content\nEnd.",
+          "utf8_bytes": 48,
+          "sha256": "cf46499878b7942ee7153d4f47b6f5cd3393108d6f944165c2f1f6c3f401bc1b"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. Ads by Vendor. After.",
+          "utf8_bytes": 29,
+          "sha256": "56ed6b1a026342345cf1847dedcad87f31dbd50e99917570b3ff6ed6113a0445"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ads by Big Ad Network here",
+          "utf8_bytes": 26,
+          "sha256": "4dbf06dd1475705125452276baf7ea44f71cf8a3434daacc2cc64419c9c26d00"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "Sponsored\nContent removed",
+          "utf8_bytes": 25,
+          "sha256": "11f7d958e8124db366b479a4ae773dcf76892144d83c913c74c1d02f597ede60"
+        },
+        "url_bare": {
+          "value": "See  for details.",
+          "utf8_bytes": 17,
+          "sha256": "90d03e2bc8d8646b540ac17331c74674d57e41bc7133f010cba5c6de74d3c90c"
+        },
+        "url_trailing_period": {
+          "value": "See  Next sentence.",
+          "utf8_bytes": 19,
+          "sha256": "8fe91bd40b38eac92d54c68b651a2d542ae02d13c06b0cb945e9659e41910f87"
+        },
+        "url_http": {
+          "value": "Visit  now",
+          "utf8_bytes": 10,
+          "sha256": "c4bf473e4c25b6300d46f722e9fe2422e00957b184c80c4f4c37907c51ff4325"
+        },
+        "url_in_parens": {
+          "value": "( after",
+          "utf8_bytes": 7,
+          "sha256": "ea0fcbcd8bc75e33658c616180bb3f6848098fad919b16d3ad5489ebc2debc9a"
+        },
+        "url_multiple": {
+          "value": "a  b  c",
+          "utf8_bytes": 7,
+          "sha256": "ef34af09b6cc8b808b1555c7f130e80304673bc1fff0acbf54319111c4efe38d"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nThen this.",
+          "utf8_bytes": 21,
+          "sha256": "9f689bf8a71588ae6b302cc7fc7211bb99aed2d8b100210226c6f11e9ab5c8eb"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nAds by X\nPara two.",
+          "utf8_bytes": 28,
+          "sha256": "934114cba37009dc8d9320b47d94752f5f6177d5b9dd87aaacf120b81d74e64d"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "include_links_no_strip_ads": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nAds by PubRev\nMore text.",
+          "utf8_bytes": 38,
+          "sha256": "77abe154ddd0ea9cda3c8fdaa465a75af1ef5461086cfd543057d5b9a2306457"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nADS BY SomeVendor\nsponsored   content\nEnd.",
+          "utf8_bytes": 48,
+          "sha256": "cf46499878b7942ee7153d4f47b6f5cd3393108d6f944165c2f1f6c3f401bc1b"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. Ads by Vendor. After.",
+          "utf8_bytes": 29,
+          "sha256": "56ed6b1a026342345cf1847dedcad87f31dbd50e99917570b3ff6ed6113a0445"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ads by Big Ad Network here",
+          "utf8_bytes": 26,
+          "sha256": "4dbf06dd1475705125452276baf7ea44f71cf8a3434daacc2cc64419c9c26d00"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "Sponsored\nContent removed",
+          "utf8_bytes": 25,
+          "sha256": "11f7d958e8124db366b479a4ae773dcf76892144d83c913c74c1d02f597ede60"
+        },
+        "url_bare": {
+          "value": "See https://example.com/page for details.",
+          "utf8_bytes": 41,
+          "sha256": "45829a4194bb07bece6262ea2786a55bfc3b20e63b6df10727218d0d98062ad2"
+        },
+        "url_trailing_period": {
+          "value": "See https://example.com/page. Next sentence.",
+          "utf8_bytes": 44,
+          "sha256": "85ee41ecf859102c49fd37c5a7a522702a4951a64b99303be0faa2ae7aba0877"
+        },
+        "url_http": {
+          "value": "Visit http://example.org now",
+          "utf8_bytes": 28,
+          "sha256": "c7c81e1ed0fb4251abcd91db8954e179833ad8beddf36025b14b26b60a8a4db7"
+        },
+        "url_in_parens": {
+          "value": "(https://example.com/x) after",
+          "utf8_bytes": 29,
+          "sha256": "ccdd1e116754701f922353369ebd2e828299b5af4d1ed601af03c92879613368"
+        },
+        "url_multiple": {
+          "value": "a https://a.com b http://b.com c",
+          "utf8_bytes": 32,
+          "sha256": "fa61b8cec6d95eb40df9322a262f8de1cc3b0202e004dcd45d1b6ebb8960b303"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nhttps://example.com/a\nThen this.",
+          "utf8_bytes": 43,
+          "sha256": "fbfa0d981274f5809f7295b54f347696f67e225f9fffe08cd7c93ecb7992b96c"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nAds by X\nPara two.",
+          "utf8_bytes": 28,
+          "sha256": "934114cba37009dc8d9320b47d94752f5f6177d5b9dd87aaacf120b81d74e64d"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      }
+    },
+    "cli": {
+      "default": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nMore text.",
+          "utf8_bytes": 24,
+          "sha256": "3604c33ee0f1790fc9a5992b5fc362caf4cb6515fdffe1617ef9c23309d04629"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nEnd.",
+          "utf8_bytes": 10,
+          "sha256": "e183d3bc4dd8366b088bc72b40f9bd6d2eba6cc943e230169507e2223a31fbed"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. . After.",
+          "utf8_bytes": 16,
+          "sha256": "f3d463ce42fe383d13efdea6c45d9135f37a444aa60dddea40af0e3c7059f5e3"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ad Network here",
+          "utf8_bytes": 15,
+          "sha256": "1f9bb50f41460a3e115c742019d3022ee541e8ddfbd0fdd0d84c628af3a3cf60"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "removed",
+          "utf8_bytes": 7,
+          "sha256": "e1f79758cc42e6fe6037941205d1fbc37f5780f13aa077d0ba8287fd93cecd52"
+        },
+        "url_bare": {
+          "value": "See  for details.",
+          "utf8_bytes": 17,
+          "sha256": "90d03e2bc8d8646b540ac17331c74674d57e41bc7133f010cba5c6de74d3c90c"
+        },
+        "url_trailing_period": {
+          "value": "See  Next sentence.",
+          "utf8_bytes": 19,
+          "sha256": "8fe91bd40b38eac92d54c68b651a2d542ae02d13c06b0cb945e9659e41910f87"
+        },
+        "url_http": {
+          "value": "Visit  now",
+          "utf8_bytes": 10,
+          "sha256": "c4bf473e4c25b6300d46f722e9fe2422e00957b184c80c4f4c37907c51ff4325"
+        },
+        "url_in_parens": {
+          "value": "( after",
+          "utf8_bytes": 7,
+          "sha256": "ea0fcbcd8bc75e33658c616180bb3f6848098fad919b16d3ad5489ebc2debc9a"
+        },
+        "url_multiple": {
+          "value": "a  b  c",
+          "utf8_bytes": 7,
+          "sha256": "ef34af09b6cc8b808b1555c7f130e80304673bc1fff0acbf54319111c4efe38d"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nThen this.",
+          "utf8_bytes": 21,
+          "sha256": "9f689bf8a71588ae6b302cc7fc7211bb99aed2d8b100210226c6f11e9ab5c8eb"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nPara two.",
+          "utf8_bytes": 19,
+          "sha256": "a08b63165cb4dc627fdb82d1dd9fae7bac2d291367765a24f0cead8e35cf8716"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "include_links": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nMore text.",
+          "utf8_bytes": 24,
+          "sha256": "3604c33ee0f1790fc9a5992b5fc362caf4cb6515fdffe1617ef9c23309d04629"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nEnd.",
+          "utf8_bytes": 10,
+          "sha256": "e183d3bc4dd8366b088bc72b40f9bd6d2eba6cc943e230169507e2223a31fbed"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. . After.",
+          "utf8_bytes": 16,
+          "sha256": "f3d463ce42fe383d13efdea6c45d9135f37a444aa60dddea40af0e3c7059f5e3"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ad Network here",
+          "utf8_bytes": 15,
+          "sha256": "1f9bb50f41460a3e115c742019d3022ee541e8ddfbd0fdd0d84c628af3a3cf60"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "removed",
+          "utf8_bytes": 7,
+          "sha256": "e1f79758cc42e6fe6037941205d1fbc37f5780f13aa077d0ba8287fd93cecd52"
+        },
+        "url_bare": {
+          "value": "See https://example.com/page for details.",
+          "utf8_bytes": 41,
+          "sha256": "45829a4194bb07bece6262ea2786a55bfc3b20e63b6df10727218d0d98062ad2"
+        },
+        "url_trailing_period": {
+          "value": "See https://example.com/page. Next sentence.",
+          "utf8_bytes": 44,
+          "sha256": "85ee41ecf859102c49fd37c5a7a522702a4951a64b99303be0faa2ae7aba0877"
+        },
+        "url_http": {
+          "value": "Visit http://example.org now",
+          "utf8_bytes": 28,
+          "sha256": "c7c81e1ed0fb4251abcd91db8954e179833ad8beddf36025b14b26b60a8a4db7"
+        },
+        "url_in_parens": {
+          "value": "(https://example.com/x) after",
+          "utf8_bytes": 29,
+          "sha256": "ccdd1e116754701f922353369ebd2e828299b5af4d1ed601af03c92879613368"
+        },
+        "url_multiple": {
+          "value": "a https://a.com b http://b.com c",
+          "utf8_bytes": 32,
+          "sha256": "fa61b8cec6d95eb40df9322a262f8de1cc3b0202e004dcd45d1b6ebb8960b303"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nhttps://example.com/a\nThen this.",
+          "utf8_bytes": 43,
+          "sha256": "fbfa0d981274f5809f7295b54f347696f67e225f9fffe08cd7c93ecb7992b96c"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nPara two.",
+          "utf8_bytes": 19,
+          "sha256": "a08b63165cb4dc627fdb82d1dd9fae7bac2d291367765a24f0cead8e35cf8716"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "no_strip_ads": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nAds by PubRev\nMore text.",
+          "utf8_bytes": 38,
+          "sha256": "77abe154ddd0ea9cda3c8fdaa465a75af1ef5461086cfd543057d5b9a2306457"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nADS BY SomeVendor\nsponsored   content\nEnd.",
+          "utf8_bytes": 48,
+          "sha256": "cf46499878b7942ee7153d4f47b6f5cd3393108d6f944165c2f1f6c3f401bc1b"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. Ads by Vendor. After.",
+          "utf8_bytes": 29,
+          "sha256": "56ed6b1a026342345cf1847dedcad87f31dbd50e99917570b3ff6ed6113a0445"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ads by Big Ad Network here",
+          "utf8_bytes": 26,
+          "sha256": "4dbf06dd1475705125452276baf7ea44f71cf8a3434daacc2cc64419c9c26d00"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "Sponsored\nContent removed",
+          "utf8_bytes": 25,
+          "sha256": "11f7d958e8124db366b479a4ae773dcf76892144d83c913c74c1d02f597ede60"
+        },
+        "url_bare": {
+          "value": "See  for details.",
+          "utf8_bytes": 17,
+          "sha256": "90d03e2bc8d8646b540ac17331c74674d57e41bc7133f010cba5c6de74d3c90c"
+        },
+        "url_trailing_period": {
+          "value": "See  Next sentence.",
+          "utf8_bytes": 19,
+          "sha256": "8fe91bd40b38eac92d54c68b651a2d542ae02d13c06b0cb945e9659e41910f87"
+        },
+        "url_http": {
+          "value": "Visit  now",
+          "utf8_bytes": 10,
+          "sha256": "c4bf473e4c25b6300d46f722e9fe2422e00957b184c80c4f4c37907c51ff4325"
+        },
+        "url_in_parens": {
+          "value": "( after",
+          "utf8_bytes": 7,
+          "sha256": "ea0fcbcd8bc75e33658c616180bb3f6848098fad919b16d3ad5489ebc2debc9a"
+        },
+        "url_multiple": {
+          "value": "a  b  c",
+          "utf8_bytes": 7,
+          "sha256": "ef34af09b6cc8b808b1555c7f130e80304673bc1fff0acbf54319111c4efe38d"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nThen this.",
+          "utf8_bytes": 21,
+          "sha256": "9f689bf8a71588ae6b302cc7fc7211bb99aed2d8b100210226c6f11e9ab5c8eb"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nAds by X\nPara two.",
+          "utf8_bytes": 28,
+          "sha256": "934114cba37009dc8d9320b47d94752f5f6177d5b9dd87aaacf120b81d74e64d"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      },
+      "include_links_no_strip_ads": {
+        "empty": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "whitespace_only": {
+          "value": "",
+          "utf8_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "plain": {
+          "value": "A quiet sentence with nothing to strip.",
+          "utf8_bytes": 39,
+          "sha256": "06f3c837d48d022db7fe2673883f4ef3af3da6606f7b66086f68fe4083bc4515"
+        },
+        "ad_marker_simple": {
+          "value": "Chapter text.\nAds by PubRev\nMore text.",
+          "utf8_bytes": 38,
+          "sha256": "77abe154ddd0ea9cda3c8fdaa465a75af1ef5461086cfd543057d5b9a2306457"
+        },
+        "ad_marker_case": {
+          "value": "Text.\nADS BY SomeVendor\nsponsored   content\nEnd.",
+          "utf8_bytes": 48,
+          "sha256": "cf46499878b7942ee7153d4f47b6f5cd3393108d6f944165c2f1f6c3f401bc1b"
+        },
+        "ad_marker_trailing_punct": {
+          "value": "Before. Ads by Vendor. After.",
+          "utf8_bytes": 29,
+          "sha256": "56ed6b1a026342345cf1847dedcad87f31dbd50e99917570b3ff6ed6113a0445"
+        },
+        "ad_marker_multiword_vendor": {
+          "value": "Ads by Big Ad Network here",
+          "utf8_bytes": 26,
+          "sha256": "4dbf06dd1475705125452276baf7ea44f71cf8a3434daacc2cc64419c9c26d00"
+        },
+        "ad_marker_no_space": {
+          "value": "AdsbyVendor stays intact",
+          "utf8_bytes": 24,
+          "sha256": "e0cb061c239ab9a927fe8e8ab4e18add3daa1bffe5b589e1d2094295e716a5fe"
+        },
+        "sponsored_newline_between": {
+          "value": "Sponsored\nContent removed",
+          "utf8_bytes": 25,
+          "sha256": "11f7d958e8124db366b479a4ae773dcf76892144d83c913c74c1d02f597ede60"
+        },
+        "url_bare": {
+          "value": "See https://example.com/page for details.",
+          "utf8_bytes": 41,
+          "sha256": "45829a4194bb07bece6262ea2786a55bfc3b20e63b6df10727218d0d98062ad2"
+        },
+        "url_trailing_period": {
+          "value": "See https://example.com/page. Next sentence.",
+          "utf8_bytes": 44,
+          "sha256": "85ee41ecf859102c49fd37c5a7a522702a4951a64b99303be0faa2ae7aba0877"
+        },
+        "url_http": {
+          "value": "Visit http://example.org now",
+          "utf8_bytes": 28,
+          "sha256": "c7c81e1ed0fb4251abcd91db8954e179833ad8beddf36025b14b26b60a8a4db7"
+        },
+        "url_in_parens": {
+          "value": "(https://example.com/x) after",
+          "utf8_bytes": 29,
+          "sha256": "ccdd1e116754701f922353369ebd2e828299b5af4d1ed601af03c92879613368"
+        },
+        "url_multiple": {
+          "value": "a https://a.com b http://b.com c",
+          "utf8_bytes": 32,
+          "sha256": "fa61b8cec6d95eb40df9322a262f8de1cc3b0202e004dcd45d1b6ebb8960b303"
+        },
+        "url_not_a_scheme": {
+          "value": "ftp://example.com survives",
+          "utf8_bytes": 26,
+          "sha256": "6a8728f277c0690748e156212e6117fda0d90ff814e844ab343b20c649aa2dc0"
+        },
+        "ws_trailing_before_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_leading_after_newline": {
+          "value": "line one\nline two",
+          "utf8_bytes": 17,
+          "sha256": "b6858b03a6cae635deeaeab09a74e598979b72c917cbfff0bb3fe2cd05111dbc"
+        },
+        "ws_triple_newline": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_many_newlines": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_double_newline_kept": {
+          "value": "a\nb",
+          "utf8_bytes": 3,
+          "sha256": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+        },
+        "ws_crlf": {
+          "value": "a\nb\nc",
+          "utf8_bytes": 5,
+          "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+        },
+        "ws_tabs": {
+          "value": "a\tb\nc",
+          "utf8_bytes": 5,
+          "sha256": "6c956051557dd1d3c6b1e4f602f10b7030dcd5862f5727e7e67bfce3670b3852"
+        },
+        "ws_nbsp": {
+          "value": "a b\nc",
+          "utf8_bytes": 6,
+          "sha256": "93b4684c5943d16ab17811c9a1dd9a651b28e814b74d6009b93207e9d7c772f1"
+        },
+        "combined_url_then_ws": {
+          "value": "Read this:\nhttps://example.com/a\nThen this.",
+          "utf8_bytes": 43,
+          "sha256": "fbfa0d981274f5809f7295b54f347696f67e225f9fffe08cd7c93ecb7992b96c"
+        },
+        "combined_ad_then_ws": {
+          "value": "Para one.\nAds by X\nPara two.",
+          "utf8_bytes": 28,
+          "sha256": "934114cba37009dc8d9320b47d94752f5f6177d5b9dd87aaacf120b81d74e64d"
+        },
+        "unicode_text": {
+          "value": "Ünïcödé — em dash, “smart quotes”, 中文字符, emoji 🙂",
+          "utf8_bytes": 69,
+          "sha256": "9c8bb5ca6a6e0aee3a6c15c6c4ea818a9d89258b397235f144fb682f359a2ba8"
+        },
+        "long_paragraph": {
+          "value": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+          "utf8_bytes": 1999,
+          "sha256": "472fae591fcdd1b37a2ab966f66f5f8c75e0e095599cecf1cd7d99eef26e774e"
+        }
+      }
+    }
+  },
+  "safe_filename": {
+    "gui": {
+      "empty": {
+        "value": "untitled",
+        "utf8_bytes": 8,
+        "sha256": "630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc"
+      },
+      "whitespace_only": {
+        "value": "untitled",
+        "utf8_bytes": 8,
+        "sha256": "630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc"
+      },
+      "plain": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "already_clean": {
+        "value": "Chapter 12 - The Long Road",
+        "utf8_bytes": 26,
+        "sha256": "8f4501bc25e098299e831629a3ca8169bd013c7e2e9d80459e39adc534b79880"
+      },
+      "tabs_newlines": {
+        "value": "Chapter One Part Two",
+        "utf8_bytes": 20,
+        "sha256": "593da3c6d8c9507f34189b4aa49f22623d02e3ca4090fa5114dbd098ae4db654"
+      },
+      "collapse_spaces": {
+        "value": "Chapter One Again",
+        "utf8_bytes": 17,
+        "sha256": "23e7d5e0d2292bd2987d4c2ef2c1dba83bb42308c6d3e776113dedc7e2e77bf7"
+      },
+      "leading_trailing_space": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "forbidden_single": {
+        "value": "Chapter_One",
+        "utf8_bytes": 11,
+        "sha256": "cad7ea6ade95041e60762c6e124edab334dfcb566cc2e6562e31993716d01112"
+      },
+      "forbidden_each_once": {
+        "value": "a_b_c_d_e_f_g_h_i_j",
+        "utf8_bytes": 19,
+        "sha256": "06a23525d89fba6528da520d6a897b34009e74c88171d549d9abe68ffe638863"
+      },
+      "forbidden_run_two": {
+        "value": "Chapter__One",
+        "utf8_bytes": 12,
+        "sha256": "c6611a66cdaaf8a976c5b5f3f662011f343cd19e7a1495ce8da92fd59a862b1e"
+      },
+      "forbidden_run_mixed": {
+        "value": "Chapter____One",
+        "utf8_bytes": 14,
+        "sha256": "575fc515c5b8a7fb58be376c968dc1c2b94b5b668c77d8c7fe78cfc78797b2d8"
+      },
+      "forbidden_run_long": {
+        "value": "a________b",
+        "utf8_bytes": 10,
+        "sha256": "595acaaa3bff2c5e18458bf0515bbadb2f5768636249892899ae9fabd859d6b1"
+      },
+      "forbidden_only": {
+        "value": "___",
+        "utf8_bytes": 3,
+        "sha256": "bda251550bf0478f4172a8aeb291d6543fea090150b82c3e2881a53721eaf990"
+      },
+      "windows_path": {
+        "value": "C__Users_me_file.txt",
+        "utf8_bytes": 20,
+        "sha256": "40ed7a465581d9069420d5569963df22536232f932dd1e11548dc8369346298b"
+      },
+      "url_as_title": {
+        "value": "https___example.com_chapter_1",
+        "utf8_bytes": 29,
+        "sha256": "a5d3f96cba6eea114b4771a28246164f9cfd15e9340612ffa42ea4df98933da4"
+      },
+      "length_149": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 149,
+        "sha256": "dbc916d3c51daf7cf45646de7819978d9057c0b0fa7dfb56d9a7d152e571fcae"
+      },
+      "length_150": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 150,
+        "sha256": "a09244d54a7ed6e9f75c3f431270b7467ffbd133f4f9950931d0aa80ce4667e6"
+      },
+      "length_151": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 150,
+        "sha256": "a09244d54a7ed6e9f75c3f431270b7467ffbd133f4f9950931d0aa80ce4667e6"
+      },
+      "length_300": {
+        "value": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "utf8_bytes": 150,
+        "sha256": "cf04b783091a7d6cf2f10b6d70de6cbee41d1ef847aa1df813e613bef060eaaa"
+      },
+      "nfd_input": {
+        "value": "Café Chapter",
+        "utf8_bytes": 14,
+        "sha256": "3f4da5bc3e7c1b765c9723a215cb9c7c518ff2839e6a9154d34397af611b3250"
+      },
+      "nfc_input": {
+        "value": "Café Chapter",
+        "utf8_bytes": 13,
+        "sha256": "1a151ce539155dd2764ffbb60007911eef9a22d89f00c837def46f6b1e6b7769"
+      },
+      "colon_macos": {
+        "value": "Chapter 1_ The Beginning",
+        "utf8_bytes": 24,
+        "sha256": "d4e776c8c1b356f929c686f28605b9e26ab3891a1f957cc0bae56bb170d2b282"
+      },
+      "leading_dot": {
+        "value": ".hidden chapter",
+        "utf8_bytes": 15,
+        "sha256": "b5635a980fe386a4d1d24097838b6e79e02d3370de4d1c46c76c25d310743dd6"
+      },
+      "leading_dots_multiple": {
+        "value": "...three dots",
+        "utf8_bytes": 13,
+        "sha256": "795d720660a0730ff2a36def5909b1b194f71df3edbc0b00615de9c5e92c5dc3"
+      },
+      "cjk_over_255_bytes": {
+        "value": "章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章",
+        "utf8_bytes": 360,
+        "sha256": "48e011c30e70976fa1b6e0ca16f3ca6079f72d04f40f1d0219e0c92d347fdbc1"
+      },
+      "emoji_over_255_bytes": {
+        "value": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+        "utf8_bytes": 400,
+        "sha256": "5da50ebba74058ac2912f38f18a43353259be36c54d8a96a2cd54357b0660500"
+      },
+      "case_collision_upper": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "case_collision_lower": {
+        "value": "chapter one",
+        "utf8_bytes": 11,
+        "sha256": "d3c22a826e97e9ad2afbceb6f77f70d2245600844259b7596fb109b524b445e4"
+      }
+    },
+    "cli": {
+      "empty": {
+        "value": "untitled",
+        "utf8_bytes": 8,
+        "sha256": "630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc"
+      },
+      "whitespace_only": {
+        "value": "untitled",
+        "utf8_bytes": 8,
+        "sha256": "630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc"
+      },
+      "plain": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "already_clean": {
+        "value": "Chapter 12 - The Long Road",
+        "utf8_bytes": 26,
+        "sha256": "8f4501bc25e098299e831629a3ca8169bd013c7e2e9d80459e39adc534b79880"
+      },
+      "tabs_newlines": {
+        "value": "Chapter One Part Two",
+        "utf8_bytes": 20,
+        "sha256": "593da3c6d8c9507f34189b4aa49f22623d02e3ca4090fa5114dbd098ae4db654"
+      },
+      "collapse_spaces": {
+        "value": "Chapter One Again",
+        "utf8_bytes": 17,
+        "sha256": "23e7d5e0d2292bd2987d4c2ef2c1dba83bb42308c6d3e776113dedc7e2e77bf7"
+      },
+      "leading_trailing_space": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "forbidden_single": {
+        "value": "Chapter_One",
+        "utf8_bytes": 11,
+        "sha256": "cad7ea6ade95041e60762c6e124edab334dfcb566cc2e6562e31993716d01112"
+      },
+      "forbidden_each_once": {
+        "value": "a_b_c_d_e_f_g_h_i_j",
+        "utf8_bytes": 19,
+        "sha256": "06a23525d89fba6528da520d6a897b34009e74c88171d549d9abe68ffe638863"
+      },
+      "forbidden_run_two": {
+        "value": "Chapter_One",
+        "utf8_bytes": 11,
+        "sha256": "cad7ea6ade95041e60762c6e124edab334dfcb566cc2e6562e31993716d01112"
+      },
+      "forbidden_run_mixed": {
+        "value": "Chapter_One",
+        "utf8_bytes": 11,
+        "sha256": "cad7ea6ade95041e60762c6e124edab334dfcb566cc2e6562e31993716d01112"
+      },
+      "forbidden_run_long": {
+        "value": "a_b",
+        "utf8_bytes": 3,
+        "sha256": "648fa9b31bc7ff7eb914e7a7180f07e0df0f8467839b1af8902da1d0bead03a2"
+      },
+      "forbidden_only": {
+        "value": "_",
+        "utf8_bytes": 1,
+        "sha256": "d2e2adf7177b7a8afddbc12d1634cf23ea1a71020f6a1308070a16400fb68fde"
+      },
+      "windows_path": {
+        "value": "C_Users_me_file.txt",
+        "utf8_bytes": 19,
+        "sha256": "7a5e3df4801bb8764555d54bffb1028533f09ab5da6ec483fc139a9dc6dd34ab"
+      },
+      "url_as_title": {
+        "value": "https_example.com_chapter_1",
+        "utf8_bytes": 27,
+        "sha256": "4ca4153167ed009a861fad646c0cabed1e67bfb4202a767fa993d0acdc7977c4"
+      },
+      "length_149": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 149,
+        "sha256": "dbc916d3c51daf7cf45646de7819978d9057c0b0fa7dfb56d9a7d152e571fcae"
+      },
+      "length_150": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 150,
+        "sha256": "a09244d54a7ed6e9f75c3f431270b7467ffbd133f4f9950931d0aa80ce4667e6"
+      },
+      "length_151": {
+        "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "utf8_bytes": 150,
+        "sha256": "a09244d54a7ed6e9f75c3f431270b7467ffbd133f4f9950931d0aa80ce4667e6"
+      },
+      "length_300": {
+        "value": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "utf8_bytes": 150,
+        "sha256": "cf04b783091a7d6cf2f10b6d70de6cbee41d1ef847aa1df813e613bef060eaaa"
+      },
+      "nfd_input": {
+        "value": "Café Chapter",
+        "utf8_bytes": 14,
+        "sha256": "3f4da5bc3e7c1b765c9723a215cb9c7c518ff2839e6a9154d34397af611b3250"
+      },
+      "nfc_input": {
+        "value": "Café Chapter",
+        "utf8_bytes": 13,
+        "sha256": "1a151ce539155dd2764ffbb60007911eef9a22d89f00c837def46f6b1e6b7769"
+      },
+      "colon_macos": {
+        "value": "Chapter 1_ The Beginning",
+        "utf8_bytes": 24,
+        "sha256": "d4e776c8c1b356f929c686f28605b9e26ab3891a1f957cc0bae56bb170d2b282"
+      },
+      "leading_dot": {
+        "value": ".hidden chapter",
+        "utf8_bytes": 15,
+        "sha256": "b5635a980fe386a4d1d24097838b6e79e02d3370de4d1c46c76c25d310743dd6"
+      },
+      "leading_dots_multiple": {
+        "value": "...three dots",
+        "utf8_bytes": 13,
+        "sha256": "795d720660a0730ff2a36def5909b1b194f71df3edbc0b00615de9c5e92c5dc3"
+      },
+      "cjk_over_255_bytes": {
+        "value": "章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章章",
+        "utf8_bytes": 360,
+        "sha256": "48e011c30e70976fa1b6e0ca16f3ca6079f72d04f40f1d0219e0c92d347fdbc1"
+      },
+      "emoji_over_255_bytes": {
+        "value": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+        "utf8_bytes": 400,
+        "sha256": "5da50ebba74058ac2912f38f18a43353259be36c54d8a96a2cd54357b0660500"
+      },
+      "case_collision_upper": {
+        "value": "Chapter One",
+        "utf8_bytes": 11,
+        "sha256": "3e93ded328010c26b2176cdc15e10c360110a14f9f60379e2d83f093ad3f3e2e"
+      },
+      "case_collision_lower": {
+        "value": "chapter one",
+        "utf8_bytes": 11,
+        "sha256": "d3c22a826e97e9ad2afbceb6f77f70d2245600844259b7596fb109b524b445e4"
+      }
+    }
+  }
+}
