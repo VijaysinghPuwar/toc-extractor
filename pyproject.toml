@@ -1,0 +1,85 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "toc-extractor"
+version = "2.0.0.dev0"
+description = "Extract chapter text from a table-of-contents page using CSS selectors you supply."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Vijaysingh Puwar" }]
+keywords = ["playwright", "scraping", "extraction", "table-of-contents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Typing :: Typed",
+]
+
+# Playwright is the only runtime dependency. Config parsing uses stdlib tomllib,
+# which is why the floor is 3.11 rather than 3.10.
+dependencies = ["playwright>=1.44,<2"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9",
+    "pytest-asyncio>=0.24,<2",
+    "ruff>=0.6,<1",
+    "mypy>=1.11,<2",
+]
+
+[project.urls]
+Homepage = "https://github.com/VijaysinghPuwar/TOC_Extractor"
+Issues = "https://github.com/VijaysinghPuwar/TOC_Extractor/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/toc_extractor"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py311"
+
+# The two v1 scripts are superseded by src/toc_extractor over phases 2-5 and are
+# deleted at the end of phase 5. Linting them would mean rewriting code that is
+# already scheduled for removal. Drop this block along with the files.
+extend-exclude = ["cli_runner.py", "toc_playwright.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+    "RUF",
+]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src"]
+strict = true
+warn_unreachable = true
+enable_error_code = ["redundant-expr", "truthy-bool", "ignore-without-code"]
+
+# Playwright ships type hints but they are not complete enough for strict mode.
+[[tool.mypy.overrides]]
+module = "playwright.*"
+follow_untyped_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+asyncio_mode = "auto"
+markers = [
+    "browser: requires a real Playwright browser download (deselect with -m 'not browser')",
+]
