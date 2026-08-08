@@ -1,182 +1,200 @@
-# TOC Extractor (Playwright + Tkinter)
+# TOC Extractor
 
-A desktop GUI that launches a **headful Playwright** browser so you can log in / solve site challenges, then extracts chapter pages from a **Table of Contents (TOC)** using **your CSS selectors**. It saves per-chapter text files and builds a `combined.txt`.
+Extracts chapter text from a table-of-contents page using CSS selectors **you**
+supply. Nothing is hard-coded per site: you give it the TOC URL and three
+selectors — chapter links, title, content — and it writes one `.txt` per chapter
+plus a merged `combined.txt`. Scraping tutorials usually hard-code selectors for
+one site and break the week it redesigns; inverting that is the entire point.
 
-> Built for respectful use: no site defaults, no bypasses, optional polite delays, persistent **local** profile, and an explicit **“I’m Ready”** step before extraction.
+## Status
 
----
+Mid-rewrite, and the README says so rather than describing software that does
+not exist yet.
 
-## Why this exists
+| | |
+|---|---|
+| `toc_playwright.py`, `cli_runner.py` | v1. Work today. Tagged `v1.0.0`. |
+| `src/toc_extractor/` | v2 library: fetching, politeness, resume. No CLI entry point yet. |
 
-Scraping tutorials often hard-code selectors for a single site and break quickly. This tool flips that: **you supply the selectors**, so it works across many sites you’re permitted to access, without embedding site-specific logic.
+The v2 CLI (`python -m toc_extractor`) is the next commit. Until it lands, the
+v1 scripts are the way to run this, and `make run` points at the v1 GUI.
 
----
-
-## Features
-
-* Bring-your-own **CSS selectors** (links, title, content)
-* **Headful** flow to handle login/captcha manually
-* **Polite pacing** with min/max randomized delays
-* Cleans text (optional: strip “Ads by …” lines, remove raw URLs)
-* Saves `001 - <Title>.txt`, `002 - …`, plus a **merged** `combined.txt`
-* Uses a **persistent local profile** (cookies/session), never committed to git
-
----
+To see the rewrite: `git diff v1.0.0..main` — 669 lines across three
+free-standing scripts becoming a tested package.
 
 ## Requirements
 
-* **Python** 3.10+
-* **Playwright** 1.44+
-* **Tkinter** (bundled with standard Python builds)
+- Python 3.11–3.14
+- Playwright (the only runtime dependency)
+- Tk, for the GUI only — see [macOS notes](#macos-notes)
 
----
-
-## Install
+## Quickstart
 
 ```bash
-# 1) Create & activate a venv
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# macOS/Linux:
+python3 -m venv .venv
 source .venv/bin/activate
+pip install -e ".[dev]"
+python -m playwright install chromium
 
-# 2) Install dependencies
-pip install -r requirements.txt
-
-# 3) Install Playwright browser engines
-python -m playwright install
+python toc_playwright.py          # GUI
+python cli_runner.py --help       # CLI
 ```
 
-`requirements.txt`
+`make setup` does all four steps and then tells you whether Tk is usable.
 
-```
-playwright>=1.44
-```
+## Permissions and ethics
 
----
+Use this only on content you own or are permitted to access. Respect each
+site's Terms of Service, its `robots.txt`, and its rate limits.
 
-## Run (GUI)
+This is enforced in code, not asserted in a paragraph:
 
-```bash
-python toc_playwright.py
-```
+- **robots.txt is checked before fetching**, and a `Disallow` is a hard refusal
+  for an anonymous run. There is no `--ignore-robots` flag, deliberately: a flag
+  that turns the check off gets copied between runs until the check means
+  nothing. The only way past it is a real human logging in through the GUI's
+  gate, and that decision is recorded with the matched rule and its line number.
+- **`Crawl-delay` is honoured**, and can only ever slow the tool down. A site
+  asking to be hit faster than you configured does not get to.
+- **The per-host delay survives concurrency.** Requests to one host are spaced by
+  the configured interval no matter how many workers are running — see
+  [Architecture](#architecture) for why that is not automatic.
+- **No protection is bypassed.** No captcha solving, no fingerprint spoofing
+  beyond a configurable User-Agent, no stealth plugins, no proxy rotation.
+- **URLs from a page are treated as untrusted.** Non-HTTP schemes and hosts
+  resolving to loopback, link-local, or private ranges are refused, including
+  across redirects.
 
----
+## Selectors
 
-## Quick Start
+Three, all yours:
 
-1. Paste the **TOC URL** (must be `http(s)`).
-2. Enter **CSS selectors**:
+| Selector | Selects |
+|---|---|
+| Chapter links | every chapter anchor on the TOC page |
+| Title | the title element on a chapter page |
+| Content | the readable container on a chapter page |
 
-   * **Chapter links** → selects all chapter anchors on the TOC page
-   * **Title** → chapter title element on each chapter page
-   * **Content** → main text container on each chapter page
-3. Click **Launch Browser & Open TOC** and complete any login/captcha in the opened Chromium window.
-4. Click **I’m Ready**, then **Start Extraction**.
-5. Find results in the **Output folder** (default `downloads/`) and `combined.txt`.
+Find them with DevTools → Inspect → Copy selector, then simplify. Start broad
+(`ol.toc a`) and narrow until only chapters match. Test a content selector with
+`document.querySelector('<selector>').innerText` before using it — if that
+returns the whole page, you have selected `body` by another name.
 
-**Selector tips**
-
-* Use DevTools → Inspect → right-click → “Copy selector,” then simplify.
-* Start generic, then narrow:
-  `ol.toc a`, `a.chapter-item`, `article h1`, `div#chapter-content`, etc.
-* Relative links (e.g., `/chapter/12`) are auto-resolved against the TOC’s domain.
-
----
+Relative links resolve against the page's own `<base>`, in the page.
 
 ## Output
 
-* **Per-chapter** files: `downloads/001 - <Title>.txt`, `002 - …`
-  Each file contains the title and cleaned text; optionally adds the page URL.
-* **Merged** file: `downloads/combined.txt` with separators between chapters.
-
-**Cleaning options**
-
-* **Strip common ad markers** (e.g., “Ads by …”, “Sponsored Content”)
-* **Remove raw links** (unless you enable “Include page URL”)
-
----
-
-## UI Options
-
-* Max chapters: **20 / 25 / 50 / 100**
-* Delay range (seconds): randomized per page for polite pacing
-* Include page URL in saved files
-* Strip common ad markers
-* Choose output folder
-
----
-
-## .gitignore (prevent huge pushes)
-
-```gitignore
-# Python
-.venv/
-__pycache__/
-*.pyc
-*.log
-
-# Playwright / app artifacts
-playwright/.cache/
-playwright-report/
-.pw_profile/
-_pw_profile/
-pw_output/
+```
 downloads/
-
-# Editors / OS
-.vscode/
-.DS_Store
+  001 - Chapter One.txt
+  002 - Chapter Two.txt
+  combined.txt
 ```
 
-**Accidentally committed big files?** Purge history and force-push:
+URLs are stripped from body text by default, as in v1. That behaviour is
+unchanged; what is new is that the count of removed URLs is reported, so the
+loss is visible rather than silent. Pass `--include-links` to keep them.
+
+## macOS notes
+
+**Tk.** The GUI needs it and Homebrew's `python3` does not ship it. Installing
+`python-tk@3.11` or `python-tk@3.12` only helps if you also have the matching
+Homebrew interpreter, and `/usr/bin/python3` has the deprecated Tk 8.5. Build
+the venv against a python.org framework build:
 
 ```bash
-python -m pip install --user git-filter-repo
-git filter-repo --force \
-  --invert-paths \
-  --path .venv/ \
-  --path playwright/.cache/ \
-  --path .pw_profile/ \
-  --path _pw_profile/ \
-  --path pw_output/ \
-  --path downloads/
-git push origin main --force
+make clean
+make setup PYTHON=/Library/Frameworks/Python.framework/Versions/3.14/bin/python3
 ```
 
----
+`make setup` reports which case you are in. The CLI does not need Tk.
 
-## FAQ
+**First Chromium launch.** `playwright install chromium` downloads a browser
+Gatekeeper has not seen. The first launch is slow while macOS verifies it. This
+is not a hang.
 
-**No links found**
-Make sure the TOC is fully visible (scroll if infinite). Test with a very broad selector (e.g., `a`) to ensure you’re on the right page, then refine.
+**Filenames.** APFS is case-insensitive, so `Chapter One.txt` and
+`chapter one.txt` are the same file; colliding titles get a numeric suffix and a
+log line rather than silently overwriting. Names are normalised to NFC, capped
+at 255 *bytes* rather than characters, and leading dots are stripped so a
+chapter titled `.Prologue` does not vanish from Finder.
 
-**Empty content**
-Your **content selector** must target the readable container, not `body`. Test in DevTools:
-`document.querySelector('<selector>').innerText`
+## Breaking change from v1
 
-**Captcha every page**
-This project **does not** bypass protections. Keep the session authenticated; extraction may be partial if the site blocks automation.
+Filenames containing runs of forbidden characters differ from what the v1 GUI
+produced. `Chapter//One` was `Chapter__One` and is now `Chapter_One`.
 
----
+The two v1 scripts had drifted — the GUI replaced each forbidden character, the
+CLI collapsed each run — and v2 adopts the CLI behaviour. Titles that are URLs
+or Windows paths are the realistic cases: `https://example.com/chapter/1` was
+`https___example.com_chapter_1` and is now `https_example.com_chapter_1`.
 
-## Legal & Ethics
+Chapter text is unchanged. A golden fixture captured from the tagged v1 pins it.
 
-Use only on content **you own** or **have permission** to access. Respect each site’s **Terms of Service**, **robots.txt**, and rate limits. This project implements **no** automated bypasses and requires explicit user confirmation before proceeding.
+## Architecture
 
----
+```
+TOC page ─▶ parser ─▶ politeness ─▶ fetcher ─▶ sink ─▶ files
+            vets       robots +      bounded    text
+            links      rate limit    workers
+```
 
-## Roadmap
+Three details are non-obvious enough to be worth stating, because each was
+established by measurement and each makes the code look more complicated than a
+reader would expect.
 
-* Optional CLI with JSON config for selectors
-* Retry/backoff for flaky pages
-* Markdown/EPUB exporters
+**The rate limiter is acquired inside the concurrency semaphore, not before it.**
+Acquiring first would let every pending worker queue on the limiter regardless
+of the concurrency ceiling, and the ceiling would stop bounding anything. A test
+runs five workers against one host and asserts the observed spacing holds.
 
----
+**Redirects are followed by hand.** Playwright's `route` handler fires once per
+navigation, not once per redirect hop — Chromium follows redirects internally.
+`route.fetch` plus `fulfill` does not re-enter the handler, and request events
+see every hop but cannot block one. So the loop lives in the handler: fetch with
+`max_redirects=0`, validate the target, repeat, abort on the first disallowed
+hop. A consequence is that `page.url` becomes wrong — the body is fulfilled at
+the originally requested URL — so the final URL is tracked in the handler.
 
-## Contributing
+**Every link is accounted for, enforced in three places.** `raw == kept +
+rejected + truncated` is a constructor assertion, the fetch loop translates
+foreign exceptions at the `PageSource` boundary, and the run asserts its own
+accounting before returning. That is not defensive layering: each was added
+after a real bug in which a chapter disappeared without a trace — SVG anchors
+arriving as a value that was truthy in JavaScript and falsy in Python, a stdlib
+`TimeoutError` escaping the retry vocabulary, and `asyncio.TaskGroup` absorbing
+a cancellation and discarding the task with it.
 
-PRs welcome! Keep changes focused, document behavior, and do **not** commit large binaries or site-specific bypass logic.
+## Known limitations
 
-****
+- **DNS rebinding is not closed.** The guard resolves a host and checks the
+  addresses; Chromium then resolves it again independently. A name that answers
+  differently between those two lookups can reach an address the guard rejected.
+  Closing this needs connection-level control the browser does not expose.
+- **Subresources are screened but not proxied.** A disallowed image or script
+  request is aborted, but only navigations are inspected hop by hop.
+- **`robots.txt` parsing follows RFC 9309 precedence** via the standard library.
+  Non-standard extensions beyond `Crawl-delay` are ignored.
+- **The GUI is still v1** and still has the defects the rewrite exists to fix:
+  no retries, Tk calls from a worker thread, and a file handle that leaks on
+  error. Use the CLI for anything that matters until the v2 GUI lands.
+- **No EPUB export.** Markdown output plus `pandoc chapter.md -o chapter.epub`
+  covers it without this project inventing metadata it does not have.
+
+## Development
+
+```bash
+make setup       # venv, install, Chromium, Tk check
+make lint        # ruff check + format check
+make typecheck   # mypy, strict, over src/
+make test        # full suite, browser tests included
+make test-fast   # skips browser tests
+```
+
+389 tests, 11 of which need a real browser. mypy runs strict over `src/` with no
+unexplained ignores. The two v1 scripts are excluded from linting because they
+are scheduled for deletion, not repair.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
