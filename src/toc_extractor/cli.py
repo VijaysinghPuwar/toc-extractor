@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -18,7 +19,8 @@ from pathlib import Path
 from . import __version__
 from .browser import BrowserPageSource
 from .checkpoint import Checkpoint, announce, fingerprint, plan_resume
-from .exporters import DEFAULT_FORMAT, available, build_sink
+from .exporters import DEFAULT_FORMAT, available, build_sink, text_exporter_of
+from .exporters.text import TextExporter
 from .fetcher import Fetcher, FetchOptions
 from .logging import configure, get_logger
 from .models import ChapterRecord, PriorChapter, RunResult
@@ -244,10 +246,22 @@ async def _extract(
 ) -> int:
     checkpoint: Checkpoint | None = None
 
+    text_sink: TextExporter | None = None
+
     def persist(record: ChapterRecord) -> None:
         if checkpoint is None:
             return
-        checkpoint.record(record, f"{record.index:03d} - {record.title}.txt")
+        # Ask the exporter what it actually wrote. Deriving the name from the
+        # title skips sanitisation and collision dedup, so the checkpoint would
+        # record a file that does not exist.
+        path = text_sink.written.get(record.index) if text_sink is not None else None
+        output_name = path.name if path is not None else ""
+        digest = (
+            hashlib.sha256(path.read_bytes()).hexdigest()
+            if path is not None and path.exists()
+            else ""
+        )
+        checkpoint.record(record, output_name, digest)
         checkpoint.save()
 
     fetcher = Fetcher(
@@ -320,17 +334,18 @@ async def _extract(
             sha256=entry.sha256,
             stripped_urls=entry.stripped_urls,
             fetched_at=entry.fetched_at,
+            output_sha256=entry.output_sha256,
         )
         for entry in checkpoint.completed.values()
     }
-    fetcher.set_sink(
-        build_sink(
-            args.formats or [DEFAULT_FORMAT],
-            output_dir,
-            include_links=args.include_links,
-            resumed=previously_written,
-        )
+    sink = build_sink(
+        args.formats or [DEFAULT_FORMAT],
+        output_dir,
+        include_links=args.include_links,
+        resumed=previously_written,
     )
+    text_sink = text_exporter_of(sink)
+    fetcher.set_sink(sink)
 
     result = await fetcher.fetch(collected, selectors, already_done=already_done)
     checkpoint.save()

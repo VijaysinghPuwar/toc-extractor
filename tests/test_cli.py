@@ -382,3 +382,43 @@ async def test_combined_survives_resume_through_the_cli(tmp_path: Path) -> None:
     combined = (tmp_path / "combined.txt").read_text(encoding="utf-8")
     present = [i for i in range(1, 7) if f"Chapter {i}" in combined]
     assert present == [1, 2, 3, 4, 5, 6]
+
+
+async def test_checkpoint_records_the_name_the_exporter_actually_wrote(tmp_path: Path) -> None:
+    """Deriving the name from the title skipped sanitisation and dedup.
+
+    A chapter titled "A/B" was recorded as "007 - A/B.txt" while the file was
+    really "007 - A_B.txt", so the next resume hard-failed looking for a file
+    that never existed.
+    """
+    pages = catalogue(1)
+    pages["https://example.com/ch/1"] = StubPage(title="A/B", body="Body.")
+    await invoke(tmp_path, pages=pages)
+
+    checkpoint = Checkpoint.load(tmp_path)
+    assert checkpoint is not None
+    entry = checkpoint.completed["https://example.com/ch/1"]
+    assert entry.output_name == "001 - A_B.txt"
+    assert (tmp_path / entry.output_name).exists()
+    assert entry.output_sha256
+
+
+async def test_resume_survives_a_sanitised_title(tmp_path: Path) -> None:
+    pages = catalogue(2)
+    pages["https://example.com/ch/1"] = StubPage(title="A//B", body="Body 1.")
+    await invoke(tmp_path, "--max", "1", pages=pages)
+    code, _ = await invoke(tmp_path, "--max", "2", pages=pages)
+
+    assert code == EXIT_OK
+    # The header keeps the raw title; only the filename is sanitised.
+    assert (tmp_path / "001 - A_B.txt").exists()
+    combined = (tmp_path / "combined.txt").read_text(encoding="utf-8")
+    assert "A//B" in combined and "Chapter 2" in combined
+
+
+async def test_an_edited_chapter_file_stops_a_resume(tmp_path: Path) -> None:
+    await invoke(tmp_path, "--max", "1", pages=catalogue(2))
+    (tmp_path / "001 - Chapter 1.txt").write_text("Tampered.\n", encoding="utf-8")
+
+    with pytest.raises(AssertionError, match="changed since they were written"):
+        await invoke(tmp_path, "--max", "2", pages=catalogue(2))

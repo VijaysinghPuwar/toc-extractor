@@ -50,6 +50,10 @@ class MultiSink:
     def __init__(self, sinks: Sequence[Sink]) -> None:
         self._sinks = list(sinks)
 
+    @property
+    def sinks(self) -> list[Sink]:
+        return list(self._sinks)
+
     async def open(self) -> None:
         for sink in self._sinks:
             await sink.open()

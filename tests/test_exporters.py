@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -34,9 +35,12 @@ def record(index: int, *, title: str | None = None, stripped: int = 0) -> Chapte
     )
 
 
-def prior(index: int) -> PriorChapter:
+def prior(index: int, *, output_sha256: str | None = None) -> PriorChapter:
     """What the checkpoint recalls about a chapter an earlier run wrote."""
     source = record(index)
+    if output_sha256 is None:
+        # The bytes TextExporter writes for this record.
+        output_sha256 = hashlib.sha256(f"{source.title}\n\n{source.text}\n".encode()).hexdigest()
     return PriorChapter(
         index=index,
         url=source.requested_url,
@@ -46,6 +50,7 @@ def prior(index: int) -> PriorChapter:
         sha256=source.sha256,
         stripped_urls=source.stripped_urls,
         fetched_at=FIXED_TIME.isoformat(),
+        output_sha256=output_sha256,
     )
 
 
@@ -362,3 +367,37 @@ async def test_every_manifest_line_is_valid_json(tmp_path: Path) -> None:
     await export(JsonlExporter(tmp_path), [record(1, title="Ünïcödé — 中文 🙂")])
     for line in (tmp_path / MANIFEST_NAME).read_text(encoding="utf-8").splitlines():
         assert json.loads(line)
+
+
+async def test_an_edited_chapter_file_is_refused(tmp_path: Path) -> None:
+    """The gap the missing-file check left open.
+
+    Refusing a deleted chapter but accepting a truncated one would let modified
+    content into the merged output with no signal - the same silent-loss class,
+    one boundary over.
+    """
+    await export(TextExporter(tmp_path), [record(1), record(2)])
+    (tmp_path / "001 - Chapter 1.txt").write_text("Tampered.\n", encoding="utf-8")
+
+    resumed = {index: prior(index) for index in (1, 2)}
+    with pytest.raises(AssertionError, match="changed since they were written"):
+        await export(TextExporter(tmp_path, resumed=resumed), [record(3)])
+
+
+async def test_an_unchanged_chapter_file_passes_verification(tmp_path: Path) -> None:
+    await export(TextExporter(tmp_path), [record(1), record(2)])
+    resumed = {index: prior(index) for index in (1, 2)}
+    await export(TextExporter(tmp_path, resumed=resumed), [record(3)])
+
+    combined = (tmp_path / COMBINED_NAME).read_text(encoding="utf-8")
+    assert all(f"Chapter {i}" in combined for i in (1, 2, 3))
+
+
+async def test_a_checkpoint_without_a_hash_still_resumes(tmp_path: Path) -> None:
+    """Checkpoints written before the hash existed must not become unusable."""
+    await export(TextExporter(tmp_path), [record(1)])
+    resumed = {1: prior(1, output_sha256="")}
+    await export(TextExporter(tmp_path, resumed=resumed), [record(2)])
+
+    combined = (tmp_path / COMBINED_NAME).read_text(encoding="utf-8")
+    assert "Chapter 1" in combined and "Chapter 2" in combined

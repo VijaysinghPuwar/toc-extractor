@@ -86,9 +86,15 @@ class CompletedChapter:
     sha256: str
     stripped_urls: int
     fetched_at: str
+    # sha256 of the written file, not of the text. The text hash cannot be
+    # recomputed from a file without re-deriving the header, and the point
+    # is to notice the file changing between runs.
+    output_sha256: str = ""
 
     @classmethod
-    def from_record(cls, record: ChapterRecord, output_name: str) -> CompletedChapter:
+    def from_record(
+        cls, record: ChapterRecord, output_name: str, output_sha256: str = ""
+    ) -> CompletedChapter:
         return cls(
             url=record.requested_url,
             index=record.index,
@@ -98,6 +104,7 @@ class CompletedChapter:
             sha256=record.sha256,
             stripped_urls=record.stripped_urls,
             fetched_at=record.fetched_at.isoformat(),
+            output_sha256=output_sha256,
         )
 
     def to_json(self) -> dict[str, Any]:
@@ -109,6 +116,7 @@ class CompletedChapter:
             "sha256": self.sha256,
             "stripped_urls": self.stripped_urls,
             "fetched_at": self.fetched_at,
+            "output_sha256": self.output_sha256,
         }
 
     @classmethod
@@ -122,6 +130,7 @@ class CompletedChapter:
             sha256=str(payload.get("sha256", "")),
             stripped_urls=int(payload.get("stripped_urls", 0)),
             fetched_at=str(payload.get("fetched_at", "")),
+            output_sha256=str(payload.get("output_sha256", "")),
         )
 
 
@@ -215,8 +224,10 @@ class Checkpoint:
 
     # -- recording ----------------------------------------------------------
 
-    def record(self, record: ChapterRecord, output_name: str) -> None:
-        self.completed[record.requested_url] = CompletedChapter.from_record(record, output_name)
+    def record(self, record: ChapterRecord, output_name: str, output_sha256: str = "") -> None:
+        self.completed[record.requested_url] = CompletedChapter.from_record(
+            record, output_name, output_sha256
+        )
         self.failed.pop(record.requested_url, None)
 
     def record_failure(self, url: str, reason: str, attempts: int) -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -73,6 +74,7 @@ class TextExporter:
         chunks = dict(self._chunks)
 
         missing: list[str] = []
+        altered: list[str] = []
         for index, prior in self._resumed.items():
             if index in chunks:
                 continue
@@ -80,15 +82,31 @@ class TextExporter:
             if not path.exists():
                 missing.append(prior.output_name)
                 continue
+
+            raw = path.read_bytes()
+            # Refusing a missing file but accepting an edited one leaves the
+            # one gap the previous fix did not cover: a truncated or modified
+            # chapter would enter the merged output silently. The hash is
+            # already recorded, so checking it costs a read we are doing anyway.
+            if prior.output_sha256 and hashlib.sha256(raw).hexdigest() != prior.output_sha256:
+                altered.append(prior.output_name)
+                continue
+
             # Exact reconstruction: a chapter file is its combined entry minus
             # the separator, so no re-derivation of the header is needed.
-            chunks[index] = path.read_text(encoding="utf-8") + "\n" + SEPARATOR + "\n\n"
+            chunks[index] = raw.decode("utf-8") + "\n" + SEPARATOR + "\n\n"
 
         if missing:
             raise AssertionError(
                 "combined.txt would omit chapters the checkpoint records as complete "
                 f"because their files are gone: {', '.join(sorted(missing))}. "
                 "Delete the output directory and rerun, or pass --force."
+            )
+        if altered:
+            raise AssertionError(
+                "these chapter files changed since they were written, so the merged "
+                f"output would not match what was recorded: {', '.join(sorted(altered))}. "
+                "Keep your edits and delete the checkpoint, or pass --force to refetch."
             )
 
         _assert_merged_output_is_complete(chunks, self._resumed, result)

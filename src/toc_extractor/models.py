@@ -59,6 +59,7 @@ class PriorChapter:
     sha256: str
     stripped_urls: int
     fetched_at: str
+    output_sha256: str = ""
 
 
 @dataclass(frozen=True, slots=True)

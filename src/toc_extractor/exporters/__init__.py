@@ -52,6 +52,24 @@ def build_sink(
     return sinks[0] if len(sinks) == 1 else MultiSink(sinks)
 
 
+def text_exporter_of(sink: Sink) -> TextExporter | None:
+    """The TextExporter inside a sink, if there is one.
+
+    The checkpoint has to record the name the exporter actually wrote. Building
+    it by formatting the title, as the CLI did, produced "007 - A/B.txt" for a
+    file really called "007 - A_B (2).txt" - unsanitised and unaware of
+    collision dedup - so the next resume hard-failed looking for a file that
+    never existed.
+    """
+    if isinstance(sink, TextExporter):
+        return sink
+    if isinstance(sink, MultiSink):
+        for inner in sink.sinks:
+            if isinstance(inner, TextExporter):
+                return inner
+    return None
+
+
 __all__ = [
     "DEFAULT_FORMAT",
     "EXPORTERS",
@@ -60,4 +78,5 @@ __all__ = [
     "TextExporter",
     "available",
     "build_sink",
+    "text_exporter_of",
 ]
