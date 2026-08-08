@@ -190,3 +190,98 @@ async def test_real_cancellation_still_propagates() -> None:
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await task
+
+
+class _FakeAbort(BaseException):
+    """A BaseException that is not CancelledError and not KeyboardInterrupt.
+
+    Stands in for the KeyboardInterrupt case without aborting the pytest
+    session, which is what a literal KeyboardInterrupt test does.
+    """
+
+
+async def test_base_exception_is_not_swallowed() -> None:
+    source = FaultyPageSource(_FakeAbort("stop everything"))
+    with pytest.raises(BaseExceptionGroup) as caught:
+        await build(source).run(TOC, SELECTORS)
+
+    flattened = list(_flatten(caught.value))
+    assert any(isinstance(exc, _FakeAbort) for exc in flattened)
+
+
+def _flatten(group: BaseExceptionGroup) -> list[BaseException]:  # type: ignore[type-arg]
+    out: list[BaseException] = []
+    for exc in group.exceptions:
+        if isinstance(exc, BaseExceptionGroup):
+            out.extend(_flatten(exc))
+        else:
+            out.append(exc)
+    return out
+
+
+class HangingSource(FaultyPageSource):
+    """Sleeps past the deadline so asyncio.timeout is the one doing the cancel."""
+
+    def __init__(self, hang: float) -> None:
+        super().__init__(RuntimeError("unused"))
+        self._hang = hang
+        self.cancelling_seen: list[int] = []
+
+    async def load_chapter(  # type: ignore[override]
+        self,
+        url: str,
+        *,
+        title_selector: str,
+        content_selector: str,
+    ) -> ChapterPage:
+        self.chapter_calls += 1
+        try:
+            await asyncio.sleep(self._hang)
+        except asyncio.CancelledError:
+            task = asyncio.current_task()
+            self.cancelling_seen.append(task.cancelling() if task is not None else -1)
+            raise
+        raise AssertionError("unreachable")
+
+
+async def test_timeout_driven_cancellation_is_not_mistaken_for_a_stop() -> None:
+    """asyncio.timeout cancels the task, so cancelling() is non-zero mid-flight.
+
+    If _fetch_one's discriminator saw that window it would re-raise a timeout
+    as a real stop and abort the whole run. It does not, because
+    asyncio.timeout's __aexit__ converts to TimeoutError and uncancels before
+    the CancelledError can reach _fetch_one's handler. This test pins that
+    ordering, since it is the only reason cancelling() alone is a sufficient
+    discriminator.
+    """
+    source = HangingSource(hang=10.0)
+    fetcher = Fetcher(
+        source,
+        guard=GUARD,
+        sink=NullSink(),
+        options=FetchOptions(timeout=0.05, retries=0, min_delay=0.0, wait_after_load=0.0),
+        limiter=RateLimiter(min_interval=0.0),
+        now=lambda: FIXED_TIME,
+    )
+    result = await fetcher.run(TOC, SELECTORS)
+
+    assert source.cancelling_seen == [1], "the timeout should cancel exactly once"
+    assert result.failed[0].reason == "timeout"
+    assert result.accounts_for_every_link()
+
+
+async def test_timeout_then_retry_still_works_after_uncancel() -> None:
+    """A retried timeout must not leave the task in a cancelling state."""
+    source = HangingSource(hang=10.0)
+    fetcher = Fetcher(
+        source,
+        guard=GUARD,
+        sink=NullSink(),
+        options=FetchOptions(timeout=0.02, retries=2, min_delay=0.0, wait_after_load=0.0),
+        limiter=RateLimiter(min_interval=0.0),
+        now=lambda: FIXED_TIME,
+    )
+    result = await fetcher.run(TOC, SELECTORS)
+
+    assert source.chapter_calls == 3, "retries must survive the uncancel dance"
+    assert result.failed[0].reason == "timeout"
