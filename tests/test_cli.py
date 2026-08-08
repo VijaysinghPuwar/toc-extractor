@@ -140,13 +140,54 @@ def test_v1_defaults_are_unchanged(flag: str, attribute: str, default: object) -
     assert getattr(parse(), attribute) == default, flag
 
 
-@pytest.mark.parametrize("flag", ["--toc", "--link", "--title", "--content"])
-def test_required_flags_are_required(flag: str) -> None:
+def test_toc_is_required_by_the_parser() -> None:
+    argv = [token for token in BASE if token not in {"--toc", TOC}]
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(argv)
+
+
+@pytest.mark.parametrize("flag", ["--link", "--title", "--content"])
+async def test_a_missing_selector_is_a_usage_error_naming_it(flag: str, tmp_path: Path) -> None:
+    """Selectors moved from parser-required to runtime-required.
+
+    A --profile can supply them, so argparse cannot demand them - but leaving
+    them merely optional would turn a forgotten selector into an empty run.
+    """
     argv = list(BASE)
     index = argv.index(flag)
     del argv[index : index + 2]
-    with pytest.raises(SystemExit):
-        build_parser().parse_args(argv)
+    args = build_parser().parse_args([*argv, "--out", str(tmp_path)])
+
+    code = await run(args, source_factory=lambda: StubPageSource(catalogue()))
+    assert code == EXIT_USAGE
+
+
+async def test_a_profile_satisfies_the_selector_requirement(tmp_path: Path) -> None:
+    profile = tmp_path / "p.toml"
+    profile.write_text(
+        '[selectors]\nlink = "a.ch"\ntitle = "h1"\ncontent = "article"\n', encoding="utf-8"
+    )
+    source = StubPageSource(catalogue())
+    argv = [
+        "--toc",
+        TOC,
+        "--profile",
+        str(profile),
+        "--out",
+        str(tmp_path),
+        "--min-delay",
+        "0",
+        "--wait-after-load",
+        "0",
+    ]
+    args = build_parser().parse_args(argv)
+    from toc_extractor.config import load_profile, merge
+
+    merge(args, load_profile(profile), argv)
+    code = await run(args, source_factory=lambda: source, robots_fetcher=lambda _u: None)
+
+    assert code == EXIT_OK
+    assert (tmp_path / "combined.txt").exists()
 
 
 # ---------------------------------------------------------------------------

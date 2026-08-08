@@ -19,6 +19,7 @@ from pathlib import Path
 from . import __version__
 from .browser import BrowserPageSource
 from .checkpoint import Checkpoint, announce, fingerprint, plan_resume
+from .config import ProfileError, load_profile, merge
 from .exporters import DEFAULT_FORMAT, available, build_sink, text_exporter_of
 from .exporters.text import TextExporter
 from .fetcher import Fetcher, FetchOptions
@@ -59,13 +60,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     source = parser.add_argument_group("source and selectors")
+    source.add_argument(
+        "--profile",
+        default=None,
+        help=(
+            "TOML file holding the three selectors and optional defaults. "
+            "Flags you pass explicitly override it. See profiles/example.toml."
+        ),
+    )
     source.add_argument("--toc", required=True, help="TOC URL (must start with http/https)")
     source.add_argument(
-        "--link", required=True, help="CSS selector for chapter links on the TOC page"
+        "--link", default=None, help="CSS selector for chapter links on the TOC page"
     )
-    source.add_argument("--title", required=True, help="CSS selector for title on a chapter page")
+    source.add_argument("--title", default=None, help="CSS selector for title on a chapter page")
     source.add_argument(
-        "--content", required=True, help="CSS selector for content on a chapter page"
+        "--content", default=None, help="CSS selector for content on a chapter page"
     )
 
     output = parser.add_argument_group("output")
@@ -183,9 +192,14 @@ async def run(
     robots_fetcher: RobotsFetcher | None = None,
 ) -> int:
     """Execute one extraction. Returns the process exit code."""
-    selectors = SelectorSet.create(link=args.link, title=args.title, content=args.content)
+    selectors = SelectorSet.create(
+        link=args.link or "", title=args.title or "", content=args.content or ""
+    )
     if not selectors.complete:
-        log.error("missing selectors: %s", ", ".join(selectors.missing))
+        log.error(
+            "missing selector(s): %s. Pass them as flags or in a --profile file.",
+            ", ".join(f"--{name}" for name in selectors.missing),
+        )
         return EXIT_USAGE
 
     output_dir = Path(args.out)
@@ -394,6 +408,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args = build_parser().parse_args(argv)
     configure(verbose=args.verbose, quiet=args.quiet)
+
+    if args.profile is not None:
+        try:
+            profile = load_profile(Path(args.profile))
+        except ProfileError as exc:
+            log.error("%s", exc)
+            return EXIT_USAGE
+        applied = merge(args, profile, argv)
+        if applied:
+            log.debug("profile %s supplied: %s", profile.path, ", ".join(sorted(applied)))
     try:
         return asyncio.run(run(args))
     except KeyboardInterrupt:

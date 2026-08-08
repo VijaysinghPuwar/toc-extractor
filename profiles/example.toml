@@ -1,0 +1,39 @@
+# A selector profile.
+#
+# This is how you point the tool at a particular site without anything
+# site-specific entering the code. Copy it, fill in selectors you derived from
+# a site you have rights to use, and pass it with --profile.
+#
+#   python -m toc_extractor --profile my-site.toml --toc https://example.com/toc
+#
+# Any flag you pass explicitly overrides the value here, so a profile is a
+# starting point rather than a file you edit to run one different command.
+#
+# The selectors below match tests/fixtures/example_toc.html, so the file is
+# runnable as-is against the local fixture and describes no real site.
+
+[selectors]
+# Every chapter anchor on the table-of-contents page.
+link = "ol.toc a"
+# The title element on a chapter page.
+title = "h1.title"
+# The readable container on a chapter page. Not `body`.
+content = "article.reader"
+
+[options]
+# Seconds between requests to one host. Concurrency never shortens this.
+min_delay = 1.5
+max_delay = 3.0
+
+# Chapters fetched at once. The per-host delay still applies to all of them.
+concurrency = 2
+
+# Chapters per run.
+max = 25
+
+# Repeatable on the command line as --format; a list here.
+formats = ["text", "jsonl"]
+
+# Keep URLs in chapter text. Off by default, and the count removed is
+# reported either way.
+include_links = false
