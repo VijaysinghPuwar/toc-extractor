@@ -12,6 +12,7 @@ spending real seconds.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -43,6 +44,10 @@ class StubPage:
     fail_times: int = 0
     failure: type[PageError] = PageTimeout
     missing_selector: bool = False
+    # Real seconds, not fake-clock seconds. Only the hard per-page timeout
+    # needs it, and that one is enforced by asyncio against the event loop's
+    # own clock, so it cannot be driven by an injected clock.
+    hang: float = 0.0
     _failures_served: int = field(default=0, init=False)
 
 
@@ -105,6 +110,8 @@ class StubPageSource:
         content_selector: str,
     ) -> ChapterPage:
         page, final_url = self._resolve(url)
+        if page.hang:
+            await asyncio.sleep(page.hang)
         if page.missing_selector:
             raise SelectorNotFound(f"{content_selector} matched nothing on {final_url}")
         return ChapterPage(
