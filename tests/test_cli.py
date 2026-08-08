@@ -1,14 +1,13 @@
-"""CLI parity with cli_runner.py, one test per flag.
+"""CLI parity with the v1 script, one test per flag.
 
-The flag list is read out of the v1 script rather than typed here, so a flag
-that existed in v1 and was forgotten in v2 fails this file instead of being
+v1's flags are frozen in V1_FLAGS, captured from the v1.0.0 tag. A flag that
+existed in v1 and was forgotten in v2 fails this file rather than being
 discovered by someone whose script stopped working.
 """
 
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 import pytest
@@ -18,18 +17,40 @@ from toc_extractor.cli import EXIT_OK, EXIT_USAGE, build_parser, options_from, r
 
 from .stub import StubPage, StubPageSource
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-V1_SCRIPT = REPO_ROOT / "cli_runner.py"
-
 TOC = "https://example.com/toc"
 BASE = ["--toc", TOC, "--link", "a.ch", "--title", "h1", "--content", "article"]
 
-
-def v1_flags() -> set[str]:
-    """Every long option cli_runner.py accepted."""
-    if not V1_SCRIPT.exists():
-        pytest.skip("v1 script has been removed; parity is now historical")
-    return set(re.findall(r'ap\.add_argument\(\s*"(--[a-z-]+)"', V1_SCRIPT.read_text()))
+# The flags cli_runner.py accepted, captured from the v1.0.0 tag before the
+# script was deleted. Frozen here rather than read from disk so the parity
+# check survives the deletion instead of quietly skipping.
+#
+#     git show v1.0.0:cli_runner.py
+#
+# Editing this list to make a test pass would be dropping a flag a user has in
+# a script somewhere. Verify against the tag first.
+V1_FLAGS = frozenset(
+    {
+        "--content",
+        "--dry-run",
+        "--dump-html",
+        "--headful",
+        "--include-links",
+        "--link",
+        "--max",
+        "--max-delay",
+        "--min-delay",
+        "--no-strip-ads",
+        "--out",
+        "--retries",
+        "--screenshot",
+        "--storage-state",
+        "--timeout",
+        "--title",
+        "--toc",
+        "--ua",
+        "--wait-after-load",
+    }
+)
 
 
 def v2_flags() -> set[str]:
@@ -85,13 +106,13 @@ async def invoke(tmp_path: Path, *extra: str, pages: dict[str, StubPage] | None 
 
 
 def test_every_v1_flag_still_exists() -> None:
-    missing = v1_flags() - v2_flags()
+    missing = V1_FLAGS - v2_flags()
     assert missing == set(), f"v1 flags dropped in v2: {sorted(missing)}"
 
 
 def test_v1_flag_count_is_what_we_think_it_is() -> None:
-    """Guards against the parity test passing because the regex found nothing."""
-    assert len(v1_flags()) == 19
+    """Guards against the parity test passing over an accidentally empty list."""
+    assert len(V1_FLAGS) == 19
 
 
 @pytest.mark.parametrize(

@@ -52,6 +52,11 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Open the graphical front end instead of running from the command line",
+    )
 
     source = parser.add_argument_group("source and selectors")
     source.add_argument("--toc", required=True, help="TOC URL (must start with http/https)")
@@ -379,6 +384,14 @@ def _report_result(result: RunResult, output_dir: Path) -> None:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    # --gui is handled before parse_args so the window does not demand the
+    # four selector flags a command-line run requires.
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "--gui" in argv:
+        from .gui.app import main as gui_main
+
+        return gui_main()
+
     args = build_parser().parse_args(argv)
     configure(verbose=args.verbose, quiet=args.quiet)
     try:

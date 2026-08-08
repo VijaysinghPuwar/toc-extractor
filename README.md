@@ -8,16 +8,8 @@ one site and break the week it redesigns; inverting that is the entire point.
 
 ## Status
 
-Mid-rewrite, and the README says so rather than describing software that does
-not exist yet.
-
-| | |
-|---|---|
-| `toc_playwright.py`, `cli_runner.py` | v1. Work today. Tagged `v1.0.0`. |
-| `src/toc_extractor/` | v2 library: fetching, politeness, resume. No CLI entry point yet. |
-
-The v2 CLI (`python -m toc_extractor`) is the next commit. Until it lands, the
-v1 scripts are the way to run this, and `make run` points at the v1 GUI.
+The v1 scripts are gone; both front ends are now the package. CI and the full
+README rewrite are still outstanding.
 
 To see the rewrite: `git diff v1.0.0..main` — 669 lines across three
 free-standing scripts becoming a tested package.
@@ -36,8 +28,8 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 python -m playwright install chromium
 
-python toc_playwright.py          # GUI
-python cli_runner.py --help       # CLI
+python -m toc_extractor --help    # command line
+python -m toc_extractor --gui     # graphical front end
 ```
 
 `make setup` does all four steps and then tells you whether Tk is usable.
@@ -175,9 +167,10 @@ a cancellation and discarding the task with it.
   request is aborted, but only navigations are inspected hop by hop.
 - **`robots.txt` parsing follows RFC 9309 precedence** via the standard library.
   Non-standard extensions beyond `Crawl-delay` are ignored.
-- **The GUI is still v1** and still has the defects the rewrite exists to fix:
-  no retries, Tk calls from a worker thread, and a file handle that leaks on
-  error. Use the CLI for anything that matters until the v2 GUI lands.
+- **An unreachable robots.txt is treated as permitting everything**, per RFC
+  9309. That includes the case where the failure is local — a TLS trust problem
+  on your machine looks the same as a site with no robots.txt. It is now warned
+  about loudly rather than assumed.
 - **No EPUB export.** Markdown output plus `pandoc chapter.md -o chapter.epub`
   covers it without this project inventing metadata it does not have.
 

@@ -7,7 +7,7 @@ PYTHON ?= python3
 VENV := .venv
 BIN := $(VENV)/bin
 
-.PHONY: help setup check-tk lint fmt typecheck test test-fast test-browser run clean
+.PHONY: help setup check-tk lint fmt typecheck test test-fast test-browser run gui clean
 
 help:
 	@echo "setup        create $(VENV), install the package and dev extras, fetch Chromium"
@@ -18,6 +18,7 @@ help:
 	@echo "test-fast    skip browser-marked tests (the CI matrix target)"
 	@echo "test-browser only browser-marked tests"
 	@echo "run          run the CLI: make run ARGS='--toc ... --link ...'"
+	@echo "gui          open the graphical front end"
 	@echo "clean        remove the venv and tooling caches"
 
 $(BIN)/python:
@@ -69,6 +70,9 @@ test-browser:
 # make run ARGS='--toc https://... --link a.ch --title h1 --content article'
 run:
 	$(BIN)/python -m toc_extractor $(ARGS)
+
+gui:
+	$(BIN)/python -m toc_extractor --gui
 
 clean:
 	rm -rf $(VENV) .mypy_cache .ruff_cache .pytest_cache

@@ -93,6 +93,27 @@ class PageSource(Protocol):
     redirect happened and its own idea of the current URL is wrong.
     """
 
+    async def open_page(self, url: str) -> str:
+        """Navigate and stop, returning the final URL.
+
+        Exists for the GUI's human gate: after Launch, the user has to see the
+        page in order to sign in or solve a challenge. Without it the browser
+        sat on a blank tab while the log claimed the page was open, which made
+        the gate impossible to satisfy.
+        """
+        ...
+
+    async def has_session_cookies(self) -> bool:
+        """Whether this context carries any cookies.
+
+        The post-gate robots downgrade is keyed on this rather than on the
+        confirm button. Pressing Ready without signing in is not an
+        authenticated session, and treating it as one would make the override
+        the default path instead of a deliberate act - the same failure the
+        absent --ignore-robots flag exists to avoid.
+        """
+        ...
+
     async def load_toc(
         self,
         url: str,

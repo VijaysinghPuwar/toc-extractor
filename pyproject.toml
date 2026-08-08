@@ -48,10 +48,6 @@ line-length = 100
 src = ["src", "tests"]
 target-version = "py311"
 
-# The two v1 scripts are superseded by src/toc_extractor over phases 2-5 and are
-# deleted at the end of phase 5. Linting them would mean rewriting code that is
-# already scheduled for removal. Drop this block along with the files.
-extend-exclude = ["cli_runner.py", "toc_playwright.py"]
 
 [tool.ruff.lint]
 select = [

@@ -277,6 +277,15 @@ class BrowserPageSource:
 
     # -- PageSource ---------------------------------------------------------
 
+    async def has_session_cookies(self) -> bool:
+        if self._context is None:
+            return False
+        return bool(await self._context.cookies())
+
+    async def open_page(self, url: str) -> str:
+        async with self._acquire() as slot:
+            return await self._goto(slot, url)
+
     async def load_toc(
         self,
         url: str,

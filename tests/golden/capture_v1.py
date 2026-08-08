@@ -1,8 +1,14 @@
 """Record what v1's clean_text and safe_filename actually do.
 
-Run this against the v1.0.0 tag, before any consolidation lands:
+The v1 scripts have been deleted, so this only runs against the tag that
+still contains them:
 
-    ./.venv/bin/python tests/golden/capture_v1.py
+    git worktree add /tmp/v1 v1.0.0
+    ./.venv/bin/python /tmp/v1/tests/golden/capture_v1.py
+
+Kept rather than deleted because it documents how v1_golden.json was produced
+and lets anyone reproduce it. The fixture itself is committed and carries the
+source hashes it was captured from.
 
 It writes v1_golden.json next to this file. The output is provenance-stamped
 with the interpreter version, the git commit, and a hash of each source file it

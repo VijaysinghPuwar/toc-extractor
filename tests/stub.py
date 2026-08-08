@@ -61,10 +61,12 @@ class StubPageSource:
         clock: Callable[[], float] = time.monotonic,
         supports_capture: bool = False,
         max_concurrent: int = 1,
+        authenticated: bool = False,
     ) -> None:
         self._pages = dict(pages)
         self._clock = clock
         self._supports_capture = supports_capture
+        self.authenticated = authenticated
         # A real page cannot serve two navigations at once: concurrent goto()
         # calls abort each other with net::ERR_ABORTED. The stub defaulted to
         # unlimited, so the fetcher happily drove one page from several workers
@@ -89,6 +91,17 @@ class StubPageSource:
         return sum(1 for _, loaded in self.loads if loaded == url)
 
     # -- PageSource ---------------------------------------------------------
+
+    async def has_session_cookies(self) -> bool:
+        return self.authenticated
+
+    async def open_page(self, url: str) -> str:
+        self._enter()
+        try:
+            _, final_url = self._resolve(url)
+            return final_url
+        finally:
+            self._in_flight -= 1
 
     async def load_toc(
         self,

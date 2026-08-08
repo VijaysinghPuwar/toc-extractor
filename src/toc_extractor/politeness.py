@@ -18,9 +18,13 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from urllib.parse import urlparse, urlunparse
 
+from .logging import get_logger
+
 ALLOWED_SCHEMES = frozenset({"http", "https"})
 
 DEFAULT_USER_AGENT = "TOCExtractor"
+
+log = get_logger("politeness")
 
 # Resolver signature. Injected so tests never touch DNS; the default is
 # socket.getaddrinfo.
@@ -387,17 +391,44 @@ def _urlopen_robots(robots_url: str, *, timeout: float = 10.0) -> str | None:
     """Read robots.txt over HTTP, or None if there is nothing to read.
 
     Uses urllib rather than the browser because this runs before any page is
-    loaded and needs no session. RFC 9309 treats an unreachable or 404
-    robots.txt as "no restrictions", which is why every failure here returns
-    None rather than raising.
+    loaded and needs no session.
+
+    RFC 9309 says a 4xx means no restrictions, so a missing robots.txt permits
+    everything. A failure to *reach* the server is a different thing and is
+    logged loudly: it was silently indistinguishable from "no robots.txt", so a
+    local TLS misconfiguration - the python.org build without its certificates
+    installed is the usual one - quietly turned every site into an unrestricted
+    one. Failing open on somebody else's rules because of a problem on this
+    machine is not a defensible default to keep quiet about.
     """
     request = urllib.request.Request(robots_url, headers={"User-Agent": DEFAULT_USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             if response.status != 200:
+                log.debug(
+                    "%s returned %s; treating as no restrictions", robots_url, response.status
+                )
                 return None
             raw: bytes = response.read(512_000)
-    except (urllib.error.URLError, OSError, ValueError):
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return None
+        log.warning(
+            "could not read %s (HTTP %s). Proceeding as if it permits everything, "
+            "which may not be what the site intends.",
+            robots_url,
+            exc.code,
+        )
+        return None
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        log.warning(
+            "could not reach %s (%s). Proceeding as if it permits everything. "
+            "If this is a certificate error, it is a problem on this machine, not "
+            "the site: run Install Certificates.command from your python.org "
+            "install, or check your network.",
+            robots_url,
+            exc,
+        )
         return None
     return raw.decode("utf-8", errors="replace")
 
