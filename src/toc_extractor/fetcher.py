@@ -17,9 +17,10 @@ import itertools
 import random
 import time
 from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TypeVar
 from urllib.parse import urlparse
 
 from .models import ChapterRecord, FailedChapter, RunResult
@@ -36,11 +37,36 @@ from .politeness import RateLimiter, RobotsPolicy, UrlGuard
 from .sinks import Sink
 from .text import clean_text
 
+_T = TypeVar("_T")
+
 Sleeper = Callable[[float], Awaitable[None]]
 
 
 async def _sleep_seconds(seconds: float) -> None:
     await asyncio.sleep(seconds)
+
+
+async def _only_page_errors(awaitable: Awaitable[_T], *, context: str) -> _T:
+    """Guarantee that a PageSource call raises only PageError or CancelledError.
+
+    The protocol is meant to be the boundary where implementation-specific
+    failures stop, but nothing enforced it: asyncio's own TimeoutError escaped
+    on the first pass and took out the whole task group instead of being
+    retried. The browser-backed source adds a second family of exceptions, so
+    the guarantee is made structural here and asserted by a fault-injection
+    test rather than left to each implementation's discipline.
+
+    CancelledError derives from BaseException and so passes through untouched,
+    which is what keeps cooperative cancellation working.
+    """
+    try:
+        return await awaitable
+    except PageError:
+        raise
+    except TimeoutError as exc:
+        raise PageTimeout(f"{context}: timed out") from exc
+    except Exception as exc:
+        raise PageError(f"{context}: {type(exc).__name__}: {exc}") from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,16 +88,30 @@ class FetchOptions:
     session_authenticated: bool = False
 
 
-@dataclass
 class _Progress:
-    """Mutable run state, guarded by the fact that asyncio is single-threaded.
+    """Mutable run state.
 
-    No lock: every mutation happens in a coroutine step with no await between
-    read and write, so there is no interleaving point.
+    Every mutation goes through one synchronous method. That is what makes the
+    no-lock argument durable rather than a comment: a coroutine step with no
+    await between read and write cannot interleave, and adding an await inside
+    a `def` is a visible change rather than a silent one.
     """
 
-    completed: dict[int, ChapterRecord] = field(default_factory=dict)
-    failed: dict[int, FailedChapter] = field(default_factory=dict)
+    def __init__(self) -> None:
+        self._completed: dict[int, ChapterRecord] = {}
+        self._failed: dict[int, FailedChapter] = {}
+
+    def record_success(self, record: ChapterRecord) -> None:
+        self._completed[record.index] = record
+
+    def record_failure(self, failure: FailedChapter) -> None:
+        self._failed[failure.index] = failure
+
+    def ordered_completed(self) -> tuple[ChapterRecord, ...]:
+        return tuple(self._completed[index] for index in sorted(self._completed))
+
+    def ordered_failed(self) -> tuple[FailedChapter, ...]:
+        return tuple(self._failed[index] for index in sorted(self._failed))
 
 
 class Fetcher:
@@ -113,11 +153,14 @@ class Fetcher:
     async def run(self, toc_url: str, selectors: SelectorSet) -> RunResult:
         options = self._options
 
-        toc = await self._source.load_toc(
-            toc_url,
-            link_selector=selectors.link,
-            capture_html=options.capture_html,
-            screenshot_path=options.screenshot_path,
+        toc = await _only_page_errors(
+            self._source.load_toc(
+                toc_url,
+                link_selector=selectors.link,
+                capture_html=options.capture_html,
+                screenshot_path=options.screenshot_path,
+            ),
+            context=toc_url,
         )
 
         collection, decisions = collect_links(
@@ -160,10 +203,19 @@ class Fetcher:
         result = RunResult(
             toc_url=toc_url,
             collection=collection,
-            completed=tuple(progress.completed[i] for i in sorted(progress.completed)),
-            failed=tuple(progress.failed[i] for i in sorted(progress.failed)),
+            completed=progress.ordered_completed(),
+            failed=progress.ordered_failed(),
             skipped_resumed=tuple(skipped),
         )
+        if not result.accounts_for_every_link():
+            # Backstop for the same class of bug as LinkCollection's assertion:
+            # a kept link that produced neither a record nor a failure has been
+            # lost, and a silent loss is the one outcome this pipeline refuses.
+            raise AssertionError(
+                f"run accounting lost links: kept={len(collection.kept)} "
+                f"completed={len(result.completed)} failed={len(result.failed)} "
+                f"skipped={len(result.skipped_resumed)}"
+            )
         await self._sink.close(result)
         return result
 
@@ -189,6 +241,24 @@ class Fetcher:
                 await self._limiter.acquire(host)
                 try:
                     page = await self._load(url, selectors)
+                except asyncio.CancelledError:
+                    # Distinguish a real cancellation from a source that raised
+                    # CancelledError of its own accord. TaskGroup treats a child
+                    # raising CancelledError as *cancelled* rather than failed and
+                    # absorbs it silently, so without this the chapter leaves no
+                    # record at all: kept=1, completed=0, failed=0. cancelling()
+                    # is non-zero only when someone actually asked us to stop.
+                    task = asyncio.current_task()
+                    if task is not None and task.cancelling() > 0:
+                        raise
+                    self._record_failure(
+                        progress,
+                        index,
+                        url,
+                        PageError(f"{url}: source raised CancelledError"),
+                        attempt,
+                    )
+                    return
                 except (PageBlocked, SelectorNotFound) as exc:
                     # Neither is worth retrying: the target is disallowed, or
                     # the page loaded fine and simply lacks the selector.
@@ -216,10 +286,13 @@ class Fetcher:
         # cancellation still arrives as CancelledError and is left alone.
         try:
             async with asyncio.timeout(self._options.timeout):
-                page = await self._source.load_chapter(
-                    url,
-                    title_selector=selectors.title,
-                    content_selector=selectors.content,
+                page = await _only_page_errors(
+                    self._source.load_chapter(
+                        url,
+                        title_selector=selectors.title,
+                        content_selector=selectors.content,
+                    ),
+                    context=url,
                 )
         except TimeoutError as exc:
             raise PageTimeout(f"{url} did not settle within {self._options.timeout}s") from exc
@@ -261,7 +334,7 @@ class Fetcher:
             attempts=attempts,
             robots=decision,
         )
-        progress.completed[index] = record
+        progress.record_success(record)
         await self._sink.write(record)
         if self._on_record is not None:
             self._on_record(record)
@@ -281,7 +354,7 @@ class Fetcher:
             detail=str(exc),
             attempts=attempts,
         )
-        progress.failed[index] = failure
+        progress.record_failure(failure)
         if self._on_failure is not None:
             self._on_failure(failure)
 
