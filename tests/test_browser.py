@@ -249,9 +249,47 @@ async def test_capture_writes_html_and_screenshot(server: str, tmp_path: Path) -
 
 
 async def test_custom_user_agent_is_applied(server: str) -> None:
-    async with BrowserPageSource(
-        guard=loopback_permitted(), user_agent="TOCExtractor/test"
-    ) as source:
-        page = source._require_page()
-        agent = await page.evaluate("() => navigator.userAgent")
+    async with (
+        BrowserPageSource(guard=loopback_permitted(), user_agent="TOCExtractor/test") as source,
+        source._acquire() as slot,
+    ):
+        agent = await slot.page.evaluate("() => navigator.userAgent")
     assert agent == "TOCExtractor/test"
+
+
+async def test_concurrent_chapter_loads_do_not_abort_each_other(server: str) -> None:
+    """Two goto() calls on one page abort each other with net::ERR_ABORTED.
+
+    Found by an end-to-end run, not by the suite: the stub serves from a dict
+    and has no notion of a page being busy, so it cannot model this at all.
+    One page per worker is the fix.
+    """
+    import asyncio
+
+    async with BrowserPageSource(guard=loopback_permitted(), max_pages=4) as source:
+        pages = await asyncio.gather(
+            *(
+                source.load_chapter(
+                    f"{server}/chapter", title_selector="h1.t", content_selector="article.c"
+                )
+                for _ in range(8)
+            )
+        )
+
+    assert len(pages) == 8
+    assert all(page.title == "Chapter Title" for page in pages)
+
+
+async def test_a_single_page_pool_still_serialises_correctly(server: str) -> None:
+    import asyncio
+
+    async with BrowserPageSource(guard=loopback_permitted(), max_pages=1) as source:
+        pages = await asyncio.gather(
+            *(
+                source.load_chapter(
+                    f"{server}/chapter", title_selector="h1.t", content_selector="article.c"
+                )
+                for _ in range(4)
+            )
+        )
+    assert all(page.body == "Chapter body text." for page in pages)

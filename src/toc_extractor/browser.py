@@ -26,7 +26,10 @@ Two consequences fall out of that:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import asyncio
+from collections.abc import AsyncIterator, Sequence
+from contextlib import asynccontextmanager
+from functools import partial
 from pathlib import Path
 from types import TracebackType
 from typing import Any
@@ -62,6 +65,20 @@ class _GuardedNavigation:
         self.hops: list[str] = []
 
 
+class _PageSlot:
+    """One page plus the navigation currently in flight on it.
+
+    The fetch loop is concurrent, so the source must be too. Two goto() calls
+    on one page abort each other - net::ERR_ABORTED, measured against a live
+    server - and a single shared `nav` attribute would attribute one
+    navigation's redirect chain to another. Both are per-slot for that reason.
+    """
+
+    def __init__(self, page: Page) -> None:
+        self.page = page
+        self.nav: _GuardedNavigation | None = None
+
+
 class BrowserPageSource:
     """Loads pages in a real Chromium context, with the URL guard at the request layer."""
 
@@ -74,6 +91,7 @@ class BrowserPageSource:
         storage_state: Path | None = None,
         user_data_dir: Path | None = None,
         navigation_timeout_ms: int = 25_000,
+        max_pages: int = 1,
     ) -> None:
         self._guard = guard
         self._headless = headless
@@ -81,12 +99,13 @@ class BrowserPageSource:
         self._storage_state = storage_state
         self._user_data_dir = user_data_dir
         self._navigation_timeout_ms = navigation_timeout_ms
+        self._max_pages = max(1, max_pages)
 
         self._playwright: Any = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
-        self._page: Page | None = None
-        self._nav: _GuardedNavigation | None = None
+        self._pool: asyncio.Queue[_PageSlot] | None = None
+        self._slots: list[_PageSlot] = []
         # One resolution per host per run. A page of forty images must not mean
         # forty DNS lookups in the screening path.
         self._verdicts: dict[str, bool] = {}
@@ -125,8 +144,16 @@ class BrowserPageSource:
 
         self._context.set_default_navigation_timeout(self._navigation_timeout_ms)
         self._context.set_default_timeout(self._navigation_timeout_ms)
-        self._page = await self._context.new_page()
-        await self._page.route("**/*", self._handle_route)
+
+        self._pool = asyncio.Queue()
+        for _ in range(self._max_pages):
+            page = await self._context.new_page()
+            slot = _PageSlot(page)
+            # The handler is bound to its slot so redirect state cannot be
+            # attributed to a navigation happening on another page.
+            await page.route("**/*", partial(self._handle_route, slot))
+            self._slots.append(slot)
+            self._pool.put_nowait(slot)
 
     async def aclose(self) -> None:
         for closer in (self._context, self._browser):
@@ -142,7 +169,8 @@ class BrowserPageSource:
         self._playwright = None
         self._browser = None
         self._context = None
-        self._page = None
+        self._pool = None
+        self._slots = []
 
     # -- routing ------------------------------------------------------------
 
@@ -154,7 +182,7 @@ class BrowserPageSource:
         self._verdicts[url] = verdict.allowed
         return verdict.allowed, verdict.reason, verdict.detail
 
-    async def _handle_route(self, route: Route) -> None:
+    async def _handle_route(self, slot: _PageSlot, route: Route) -> None:
         request = route.request
         allowed, reason, detail = self._screen(request.url)
 
@@ -168,7 +196,7 @@ class BrowserPageSource:
                 await route.abort("blockedbyclient")
             return
 
-        nav = self._nav
+        nav = slot.nav
         if not allowed:
             if nav is not None:
                 nav.blocked = PageBlocked(request.url, reason or RejectionReason.MALFORMED, detail)
@@ -215,16 +243,25 @@ class BrowserPageSource:
 
     # -- navigation ---------------------------------------------------------
 
-    async def _goto(self, url: str) -> str:
+    @asynccontextmanager
+    async def _acquire(self) -> AsyncIterator[_PageSlot]:
+        if self._pool is None:
+            raise PageError("page source is not started; call start() first")
+        slot = await self._pool.get()
+        try:
+            yield slot
+        finally:
+            self._pool.put_nowait(slot)
+
+    async def _goto(self, slot: _PageSlot, url: str) -> str:
         allowed, reason, detail = self._screen(url)
         if not allowed:
             raise PageBlocked(url, reason or RejectionReason.MALFORMED, detail)
 
-        page = self._require_page()
         nav = _GuardedNavigation()
-        self._nav = nav
+        slot.nav = nav
         try:
-            await page.goto(url, wait_until="domcontentloaded")
+            await slot.page.goto(url, wait_until="domcontentloaded")
         except PlaywrightTimeout as exc:
             raise PageTimeout(f"{url}: navigation timed out") from exc
         except PlaywrightError as exc:
@@ -232,16 +269,11 @@ class BrowserPageSource:
                 raise nav.blocked from exc
             raise PageError(f"{url}: {exc}") from exc
         finally:
-            self._nav = None
+            slot.nav = None
 
         if nav.blocked is not None:
             raise nav.blocked
         return nav.final_url or url
-
-    def _require_page(self) -> Page:
-        if self._page is None:
-            raise PageError("page source is not started; call start() first")
-        return self._page
 
     # -- PageSource ---------------------------------------------------------
 
@@ -253,15 +285,18 @@ class BrowserPageSource:
         capture_html: bool = False,
         screenshot_path: Path | None = None,
     ) -> TocPage:
-        final_url = await self._goto(url)
-        page = self._require_page()
+        async with self._acquire() as slot:
+            final_url = await self._goto(slot, url)
+            page = slot.page
 
-        html = await page.content() if capture_html else None
-        if screenshot_path is not None:
-            screenshot_path.parent.mkdir(parents=True, exist_ok=True)
-            await page.screenshot(path=str(screenshot_path), full_page=True)
+            html = await page.content() if capture_html else None
+            if screenshot_path is not None:
+                screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+                await page.screenshot(path=str(screenshot_path), full_page=True)
 
-        raw: Sequence[object] = await page.eval_on_selector_all(link_selector, LINK_COLLECTOR_JS)
+            raw: Sequence[object] = await page.eval_on_selector_all(
+                link_selector, LINK_COLLECTOR_JS
+            )
         return TocPage(
             requested_url=url,
             final_url=final_url,
@@ -276,11 +311,10 @@ class BrowserPageSource:
         title_selector: str,
         content_selector: str,
     ) -> ChapterPage:
-        final_url = await self._goto(url)
-        page = self._require_page()
-
-        title = await self._read_field(page, title_selector, final_url)
-        body = await self._read_field(page, content_selector, final_url)
+        async with self._acquire() as slot:
+            final_url = await self._goto(slot, url)
+            title = await self._read_field(slot.page, title_selector, final_url)
+            body = await self._read_field(slot.page, content_selector, final_url)
         return ChapterPage(
             requested_url=url,
             final_url=final_url,

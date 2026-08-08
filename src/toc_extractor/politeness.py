@@ -10,6 +10,8 @@ import asyncio
 import ipaddress
 import socket
 import time
+import urllib.error
+import urllib.request
 import urllib.robotparser
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass, field
@@ -375,6 +377,44 @@ def missing_robots(origin: str, *, user_agent: str = DEFAULT_USER_AGENT) -> Robo
 def origin_of(url: str) -> str:
     parsed = urlparse(url)
     return urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
+
+
+# Fetching robots.txt. Injected in tests so no test touches the network.
+RobotsFetcher = Callable[[str], str | None]
+
+
+def _urlopen_robots(robots_url: str, *, timeout: float = 10.0) -> str | None:
+    """Read robots.txt over HTTP, or None if there is nothing to read.
+
+    Uses urllib rather than the browser because this runs before any page is
+    loaded and needs no session. RFC 9309 treats an unreachable or 404
+    robots.txt as "no restrictions", which is why every failure here returns
+    None rather than raising.
+    """
+    request = urllib.request.Request(robots_url, headers={"User-Agent": DEFAULT_USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            if response.status != 200:
+                return None
+            raw: bytes = response.read(512_000)
+    except (urllib.error.URLError, OSError, ValueError):
+        return None
+    return raw.decode("utf-8", errors="replace")
+
+
+def fetch_robots(
+    toc_url: str,
+    *,
+    user_agent: str = DEFAULT_USER_AGENT,
+    fetcher: RobotsFetcher | None = None,
+) -> RobotsPolicy:
+    """Fetch and parse the robots.txt governing `toc_url`."""
+    origin = origin_of(toc_url)
+    read = fetcher or _urlopen_robots
+    content = read(f"{origin}/robots.txt")
+    if content is None:
+        return missing_robots(origin, user_agent=user_agent)
+    return parse_robots(content, origin=origin, user_agent=user_agent)
 
 
 class RateLimiter:

@@ -505,3 +505,30 @@ async def test_timeout_type_is_reported_as_timeout() -> None:
     fetcher, _, _, _ = build(chapters=1, pages=pages, retries=0, wait_after_load=0.0)
     result = await fetcher.run(TOC, SELECTORS)
     assert result.failed[0].reason == "timeout"
+
+
+async def test_combined_survives_a_resumed_run(tmp_path: Path) -> None:
+    """Regression: a resumed run used to truncate combined.txt.
+
+    The sink only holds chunks for chapters it fetched, so writing those alone
+    discarded everything from the earlier run. The per-chapter files stayed
+    intact, which is why nothing looked wrong until you opened combined.txt.
+    """
+    output = tmp_path / "out"
+
+    first, _, _, _ = build(chapters=5, max_links=3, wait_after_load=0.0)
+    first._sink = TextSink(output)
+    await first.run(TOC, SELECTORS)
+    assert (output / "combined.txt").read_text(encoding="utf-8").count("Chapter ") == 3
+
+    done = {f"https://example.com/ch/{i}" for i in (1, 2, 3)}
+    second, _, _, _ = build(chapters=5, wait_after_load=0.0)
+    second._sink = TextSink(output)
+    second._already_done = lambda url: url in done
+    await second.run(TOC, SELECTORS)
+
+    combined = (output / "combined.txt").read_text(encoding="utf-8")
+    for number in range(1, 6):
+        assert f"Chapter {number}" in combined, f"chapter {number} missing from combined.txt"
+    positions = [combined.index(f"Chapter {i}") for i in range(1, 6)]
+    assert positions == sorted(positions), "combined.txt must stay in index order"

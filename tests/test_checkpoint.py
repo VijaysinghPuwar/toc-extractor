@@ -74,6 +74,11 @@ def seeded(tmp_path: Path, *, links: list[str], done: int, toc: str = TOC) -> Ch
         path=Checkpoint.path_for(tmp_path),
         toc_url=toc,
         fingerprint=fingerprint(toc, SELECTORS),
+        selectors={
+            "link": SELECTORS.link,
+            "title": SELECTORS.title,
+            "content": SELECTORS.content,
+        },
         link_set=list(links),
     )
     for index, url in enumerate(links[:done], start=1):
@@ -220,7 +225,9 @@ def test_changed_selectors_refuse_to_resume(tmp_path: Path) -> None:
 
     assert plan is not None
     assert not plan.usable
-    assert "different selectors" in plan.refusal
+    # The refusal must name the selector that changed, not list possibilities.
+    assert "--content" in plan.refusal
+    assert "article" in plan.refusal and "div.body" in plan.refusal
     assert "--force" in plan.refusal
 
 
@@ -267,7 +274,8 @@ def test_divergent_toc_refuses_with_specifics(tmp_path: Path) -> None:
 
     assert plan is not None
     assert not plan.usable
-    assert "stored 5 links, found 3" in plan.refusal
+    assert "stored 5 link(s), found 3" in plan.refusal
+    assert "2 no longer present" in plan.refusal
     assert "--force" in plan.refusal
 
 

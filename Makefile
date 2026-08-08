@@ -15,9 +15,9 @@ help:
 	@echo "fmt          apply ruff formatting"
 	@echo "typecheck    mypy strict over src/"
 	@echo "test         full suite, including browser-marked tests"
-	@echo "test-fast    skip browser-marked tests"
+	@echo "test-fast    skip browser-marked tests (the CI matrix target)"
 	@echo "test-browser only browser-marked tests"
-	@echo "run          launch the GUI"
+	@echo "run          run the CLI: make run ARGS='--toc ... --link ...'"
 	@echo "clean        remove the venv and tooling caches"
 
 $(BIN)/python:
@@ -58,15 +58,17 @@ typecheck:
 test:
 	$(BIN)/python -m pytest
 
+# The CI matrix target. Every job but one runs this, so a matrix job never
+# waits on a Chromium download.
 test-fast:
 	$(BIN)/python -m pytest -m "not browser"
 
 test-browser:
 	$(BIN)/python -m pytest -m browser
 
-# Replaced by `python -m toc_extractor` once the v2 entry points land.
+# make run ARGS='--toc https://... --link a.ch --title h1 --content article'
 run:
-	$(BIN)/python toc_playwright.py
+	$(BIN)/python -m toc_extractor $(ARGS)
 
 clean:
 	rm -rf $(VENV) .mypy_cache .ruff_cache .pytest_cache

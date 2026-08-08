@@ -6,6 +6,7 @@ exporter registry plugs into; only the seam and one text sink exist now.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Protocol
 
@@ -13,7 +14,14 @@ from .models import ChapterRecord, RunResult
 from .text import FilenameAllocator
 
 COMBINED_NAME = "combined.txt"
+_INDEX_RE = re.compile(r"^(\d{3}) - ")
 SEPARATOR = "-" * 80
+
+
+def _index_of(name: str) -> int | None:
+    """The NNN prefix a chapter file was written with, if it has one."""
+    match = _INDEX_RE.match(name)
+    return int(match.group(1)) if match else None
 
 
 class Sink(Protocol):
@@ -62,9 +70,26 @@ class TextSink:
         self._chunks[record.index] = header + record.text + "\n\n" + SEPARATOR + "\n\n"
 
     async def close(self, result: RunResult) -> None:
+        """Rebuild combined.txt from everything on disk, not just this run.
+
+        A resumed run only holds chunks for the chapters it fetched. Writing
+        those alone truncated combined.txt to the new chapters and silently
+        discarded the earlier ones - the per-chapter files were intact, so
+        nothing looked wrong until you opened the merged file. Chapters from a
+        previous run are reconstructed from their files, which is exact: a
+        chapter file is the combined entry minus the separator.
+        """
+        chunks = dict(self._chunks)
+        for path in self._dir.glob("*.txt"):
+            if path.name == COMBINED_NAME:
+                continue
+            index = _index_of(path.name)
+            if index is None or index in chunks:
+                continue
+            chunks[index] = path.read_text(encoding="utf-8") + "\n" + SEPARATOR + "\n\n"
+
         combined = self._dir / COMBINED_NAME
-        ordered = (self._chunks[index] for index in sorted(self._chunks))
-        combined.write_text("".join(ordered), encoding="utf-8")
+        combined.write_text("".join(chunks[index] for index in sorted(chunks)), encoding="utf-8")
 
 
 class NullSink:

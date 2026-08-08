@@ -120,3 +120,43 @@ def test_the_test_only_subclass_is_what_grants_the_exemption() -> None:
 )
 def test_default_construction_refuses_the_usual_suspects(url: str) -> None:
     assert not build_url_guard().check(url)
+
+
+# ---------------------------------------------------------------------------
+# The path cli.py actually uses
+# ---------------------------------------------------------------------------
+
+
+def test_cli_constructs_the_guard_only_through_build_url_guard() -> None:
+    """The exemption must not become reachable from a command line.
+
+    Structural, because a behavioural test would keep passing right up until
+    someone wired a flag to it.
+    """
+    import inspect
+
+    from toc_extractor import cli
+
+    source = inspect.getsource(cli)
+    assert "build_url_guard(" in source
+    assert "UrlGuard(" not in source, "cli.py must not construct UrlGuard directly"
+
+
+def test_no_cli_flag_grants_a_per_origin_exemption() -> None:
+    from toc_extractor.cli import build_parser
+
+    for action in build_parser()._actions:
+        for option in action.option_strings:
+            assert not any(token in option.lower() for token in SUSPICIOUS), option
+
+
+def test_the_only_guard_flag_is_the_all_or_nothing_switch() -> None:
+    from toc_extractor.cli import build_parser
+
+    guard_flags = {
+        option
+        for action in build_parser()._actions
+        for option in action.option_strings
+        if "host" in option or "private" in option
+    }
+    assert guard_flags == {"--allow-private-hosts"}

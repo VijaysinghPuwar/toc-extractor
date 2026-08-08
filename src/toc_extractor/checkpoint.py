@@ -132,6 +132,7 @@ class Checkpoint:
     path: Path
     toc_url: str
     fingerprint: str
+    selectors: dict[str, str] = field(default_factory=dict)
     link_set: list[str] = field(default_factory=list)
     completed: dict[str, CompletedChapter] = field(default_factory=dict)
     failed: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -167,6 +168,7 @@ class Checkpoint:
             path=path,
             toc_url=str(payload.get("toc_url", "")),
             fingerprint=str(payload.get("fingerprint", "")),
+            selectors={k: str(v) for k, v in payload.get("selectors", {}).items()},
             link_set=[str(url) for url in payload.get("link_set", [])],
             completed={
                 url: CompletedChapter.from_json(url, entry)
@@ -186,6 +188,7 @@ class Checkpoint:
             "version": SCHEMA_VERSION,
             "toc_url": self.toc_url,
             "fingerprint": self.fingerprint,
+            "selectors": self.selectors,
             "link_count": len(self.link_set),
             "link_set": self.link_set,
             "updated_at": datetime.now(UTC).isoformat(),
@@ -290,10 +293,7 @@ def plan_resume(
             comparison=TocComparison.DIVERGED,
             already_done=len(existing.completed),
             usable=False,
-            refusal=(
-                "the stored run used a different TOC URL or different selectors, "
-                "so its output is not the same extraction; pass --force to start over"
-            ),
+            refusal=_describe_extraction_change(existing, toc_url, selectors),
         )
 
     comparison = compare_link_sets(existing.link_set, current_links)
@@ -306,12 +306,7 @@ def plan_resume(
             comparison=comparison,
             already_done=len(existing.completed),
             usable=False,
-            refusal=(
-                f"the table of contents changed in a way that is not simple growth "
-                f"(stored {len(existing.link_set)} links, found {len(current_links)}); "
-                f"chapter numbers would no longer line up with the files already "
-                f"written, so pass --force to start over"
-            ),
+            refusal=_describe_toc_change(existing.link_set, current_links),
         )
 
     return ResumePlan(
@@ -320,6 +315,62 @@ def plan_resume(
         already_done=len(existing.completed),
         appended=appended,
         renumbering=comparison is TocComparison.GREW_AT_START and bool(existing.completed),
+    )
+
+
+def _describe_extraction_change(existing: Checkpoint, toc_url: str, selectors: SelectorSet) -> str:
+    """Say which input changed, not that one of several might have.
+
+    The first version listed the possibilities and left the reader to work it
+    out. Storing the selectors alongside their hash costs nothing and turns a
+    refusal into an instruction.
+    """
+    changes: list[str] = []
+    if normalize_url(existing.toc_url) != normalize_url(toc_url):
+        changes.append(f"TOC URL was {existing.toc_url!r}, now {toc_url!r}")
+
+    stored = existing.selectors
+    for name, current in (
+        ("link", selectors.link),
+        ("title", selectors.title),
+        ("content", selectors.content),
+    ):
+        was = stored.get(name)
+        if was is not None and was != current:
+            changes.append(f"--{name} was {was!r}, now {current!r}")
+
+    if not changes:
+        # Older checkpoints predate the stored selectors; say so rather than
+        # inventing a diff.
+        changes.append("the stored run used a different TOC URL or different selectors")
+
+    return (
+        "this is not the same extraction (" + "; ".join(changes) + "), so the "
+        "files already written do not match what this run would produce; "
+        "pass --force to start over"
+    )
+
+
+def _describe_toc_change(stored: list[str], current: list[str]) -> str:
+    """Say what moved, so the reader can decide whether --force is safe."""
+    stored_normal = [normalize_url(url) for url in stored]
+    current_normal = [normalize_url(url) for url in current]
+    missing = [url for url in stored_normal if url not in set(current_normal)]
+    added = [url for url in current_normal if url not in set(stored_normal)]
+
+    parts = [f"stored {len(stored)} link(s), found {len(current)}"]
+    if missing:
+        parts.append(f"{len(missing)} no longer present, first {missing[0]}")
+    if added:
+        parts.append(f"{len(added)} new")
+    if not missing and not added:
+        parts.append("same links in a different order")
+
+    return (
+        "the table of contents changed in a way that is not simple growth ("
+        + "; ".join(parts)
+        + "); chapter numbers would no longer line up with the files already "
+        "written, so pass --force to start over"
     )
 
 

@@ -31,8 +31,9 @@ from .pagesource import (
     PageSource,
     PageTimeout,
     SelectorNotFound,
+    TocPage,
 )
-from .parser import RobotsDecision, SelectorSet, collect_links
+from .parser import LinkCollection, RobotsDecision, SelectorSet, collect_links
 from .politeness import RateLimiter, RobotsPolicy, UrlGuard
 from .sinks import Sink
 from .text import clean_text
@@ -86,6 +87,20 @@ class FetchOptions:
     capture_html: bool = False
     screenshot_path: Path | None = None
     session_authenticated: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class CollectedLinks:
+    """The TOC page and the verdict on every link it offered."""
+
+    toc_url: str
+    toc: TocPage
+    collection: LinkCollection
+    decisions: tuple[RobotsDecision | None, ...]
+
+    @property
+    def kept(self) -> list[str]:
+        return list(self.collection.kept)
 
 
 class _Progress:
@@ -150,9 +165,15 @@ class Fetcher:
             min_interval=self._options.min_delay, clock=clock, sleep=self._sleep
         )
 
-    async def run(self, toc_url: str, selectors: SelectorSet) -> RunResult:
-        options = self._options
+    async def collect(self, toc_url: str, selectors: SelectorSet) -> CollectedLinks:
+        """Load the TOC and vet its links. No chapter is fetched here.
 
+        Split out of run() because resume has to be planned against the link
+        set the TOC actually offers today, and that is only known after this
+        step. A caller that wants to consult a checkpoint calls collect(),
+        decides, then calls fetch().
+        """
+        options = self._options
         toc = await _only_page_errors(
             self._source.load_toc(
                 toc_url,
@@ -162,7 +183,6 @@ class Fetcher:
             ),
             context=toc_url,
         )
-
         collection, decisions = collect_links(
             toc.raw_links,
             guard=self._guard,
@@ -170,17 +190,31 @@ class Fetcher:
             session_authenticated=options.session_authenticated,
             max_links=options.max_links,
         )
+        return CollectedLinks(
+            toc_url=toc_url,
+            toc=toc,
+            collection=collection,
+            decisions=tuple(decisions),
+        )
 
-        if options.dry_run:
-            # Deliberately before any sink.open(): a dry run must not create
-            # the output directory, let alone write to it.
-            return RunResult(toc_url=toc_url, collection=collection)
+    async def fetch(
+        self,
+        collected: CollectedLinks,
+        selectors: SelectorSet,
+        *,
+        already_done: Callable[[str], bool] | None = None,
+    ) -> RunResult:
+        """Fetch everything in `collected` that is not already done."""
+        options = self._options
+        collection = collected.collection
+        decisions = collected.decisions
+        is_done = already_done if already_done is not None else self._already_done
 
         pending: list[tuple[int, str, RobotsDecision | None]] = []
         skipped: list[str] = []
         for position, url in enumerate(collection.kept, start=1):
             decision = decisions[position - 1] if position - 1 < len(decisions) else None
-            if self._already_done(url):
+            if is_done(url):
                 skipped.append(url)
                 continue
             pending.append((position, url, decision))
@@ -189,19 +223,14 @@ class Fetcher:
         await self._sink.open()
 
         semaphore = asyncio.Semaphore(max(1, options.concurrency))
-        try:
-            async with asyncio.TaskGroup() as group:
-                for index, url, decision in pending:
-                    group.create_task(
-                        self._fetch_one(index, url, decision, selectors, semaphore, progress)
-                    )
-        except* PageError:
-            # Per-chapter failures are recorded, not raised; anything reaching
-            # here is a bug in _fetch_one's own error handling.
-            raise
+        async with asyncio.TaskGroup() as group:
+            for index, url, decision in pending:
+                group.create_task(
+                    self._fetch_one(index, url, decision, selectors, semaphore, progress)
+                )
 
         result = RunResult(
-            toc_url=toc_url,
+            toc_url=collected.toc_url,
             collection=collection,
             completed=progress.ordered_completed(),
             failed=progress.ordered_failed(),
@@ -218,6 +247,14 @@ class Fetcher:
             )
         await self._sink.close(result)
         return result
+
+    async def run(self, toc_url: str, selectors: SelectorSet) -> RunResult:
+        collected = await self.collect(toc_url, selectors)
+        if self._options.dry_run:
+            # Deliberately before any sink.open(): a dry run must not create
+            # the output directory, let alone write to it.
+            return RunResult(toc_url=toc_url, collection=collected.collection)
+        return await self.fetch(collected, selectors)
 
     async def _fetch_one(
         self,
