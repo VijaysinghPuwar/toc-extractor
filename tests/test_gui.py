@@ -443,3 +443,87 @@ def test_distinct_rules_are_each_announced() -> None:
         ],
     )
     assert state.robots_overrides == ["rule A", "rule B"]
+
+
+# ---------------------------------------------------------------------------
+# The TOC field is user input
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["file:///etc/passwd", "data:text/html,<h1>x</h1>", "javascript:alert(1)"],
+)
+def test_a_dangerous_toc_url_never_reaches_the_browser(tmp_path: Path, url: str) -> None:
+    """Launch must refuse before the source is asked to open anything.
+
+    The GUI's TOC field is a text box. open_page was added late, so this checks
+    the worker's own pre-flight rather than relying on the browser source.
+    """
+    bridge = UiBridge()
+    loop = AsyncLoopThread()
+    loop.start()
+    source = StubPageSource(catalogue())
+    worker = ExtractionWorker(
+        bridge, loop=loop, source_factory=lambda: source, robots_fetcher=lambda _u: None
+    )
+    try:
+        request = RunRequest(
+            toc_url=url,
+            selectors=SELECTORS,
+            output_dir=tmp_path,
+            formats=("text",),
+            options=FetchOptions(min_delay=0.0, wait_after_load=0.0),
+        )
+        worker.launch(request).result(timeout=10)
+    finally:
+        loop.stop()
+
+    state = RunState()
+    apply(state, bridge.drain(limit=10_000))
+    assert state.phase is Phase.FAILED
+    assert source.urls_loaded == [], "nothing may be opened for a refused URL"
+
+
+def test_a_private_toc_url_is_refused_by_default(tmp_path: Path) -> None:
+    bridge = UiBridge()
+    loop = AsyncLoopThread()
+    loop.start()
+    source = StubPageSource(catalogue())
+    worker = ExtractionWorker(
+        bridge, loop=loop, source_factory=lambda: source, robots_fetcher=lambda _u: None
+    )
+    try:
+        request = RunRequest(
+            toc_url="http://127.0.0.1:9/toc",
+            selectors=SELECTORS,
+            output_dir=tmp_path,
+            formats=("text",),
+            options=FetchOptions(min_delay=0.0, wait_after_load=0.0),
+            allow_private_hosts=False,
+        )
+        worker.launch(request).result(timeout=10)
+    finally:
+        loop.stop()
+
+    state = RunState()
+    apply(state, bridge.drain(limit=10_000))
+    assert state.phase is Phase.FAILED
+    assert source.urls_loaded == []
+
+
+def test_launch_navigates_rather_than_only_logging(tmp_path: Path) -> None:
+    """The live-run bug: 'Opened <url>' while the browser sat on a blank tab."""
+    bridge = UiBridge()
+    loop = AsyncLoopThread()
+    loop.start()
+    source = StubPageSource(catalogue())
+    worker = ExtractionWorker(
+        bridge, loop=loop, source_factory=lambda: source, robots_fetcher=lambda _u: None
+    )
+    try:
+        worker.launch(request_for(tmp_path)).result(timeout=10)
+    finally:
+        loop.stop()
+
+    assert source.urls_loaded == [TOC], "launch must actually navigate"

@@ -293,3 +293,81 @@ async def test_a_single_page_pool_still_serialises_correctly(server: str) -> Non
             )
         )
     assert all(page.body == "Chapter body text." for page in pages)
+
+
+# ---------------------------------------------------------------------------
+# open_page: added late, so audited separately
+# ---------------------------------------------------------------------------
+
+
+async def test_open_page_refuses_a_file_url(server: str) -> None:
+    """The GUI's TOC field is a text box a human types into.
+
+    open_page was added during a live-run fix, after every other guard test was
+    written. It is the one navigation whose URL comes straight from user input
+    rather than from a parsed TOC, so a file:// or data: URL typed there would
+    open directly in the browser if it skipped the guard.
+    """
+    async with BrowserPageSource(guard=loopback_permitted()) as source:
+        with pytest.raises(PageBlocked) as caught:
+            await source.open_page("file:///etc/passwd")
+    assert caught.value.reason is RejectionReason.DISALLOWED_SCHEME
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["data:text/html,<h1>x</h1>", "javascript:alert(1)", "about:blank", "ftp://example.com/x"],
+)
+async def test_open_page_refuses_every_non_http_scheme(server: str, url: str) -> None:
+    async with BrowserPageSource(guard=loopback_permitted()) as source:
+        with pytest.raises(PageBlocked):
+            await source.open_page(url)
+
+
+async def test_open_page_refuses_a_private_address(server: str) -> None:
+    async with BrowserPageSource(guard=only_the_fixture_origin(server)) as source:
+        with pytest.raises(PageBlocked) as caught:
+            await source.open_page("http://169.254.169.254/latest/meta-data/")
+    assert caught.value.reason is RejectionReason.PRIVATE_ADDRESS
+
+
+async def test_open_page_enforces_the_guard_across_redirects(server: str) -> None:
+    """Route-level enforcement, not only the pre-flight string check."""
+    async with BrowserPageSource(guard=only_the_fixture_origin(server)) as source:
+        with pytest.raises(PageBlocked) as caught:
+            await source.open_page(f"{server}/redirect/to-private")
+
+    assert caught.value.reason is RejectionReason.PRIVATE_ADDRESS
+    assert "/latest/meta-data/" not in "".join(Handler.reached)
+
+
+async def test_open_page_reports_the_final_url(server: str) -> None:
+    async with BrowserPageSource(guard=loopback_permitted()) as source:
+        final = await source.open_page(f"{server}/redirect/in-policy")
+    assert final == f"{server}/chapter"
+
+
+async def test_open_page_takes_a_slot_from_the_pool(server: str) -> None:
+    """It shares the context with the worker pages, so it must not bypass the pool."""
+    import asyncio
+
+    async with BrowserPageSource(guard=loopback_permitted(), max_pages=2) as source:
+        results = await asyncio.gather(*(source.open_page(f"{server}/chapter") for _ in range(6)))
+    assert results == [f"{server}/chapter"] * 6
+
+
+async def test_open_page_then_load_chapter_share_the_pool(server: str) -> None:
+    """The human gate opens a page, then extraction runs on the same context."""
+    import asyncio
+
+    async with BrowserPageSource(guard=loopback_permitted(), max_pages=2) as source:
+        await source.open_page(f"{server}/chapter")
+        pages = await asyncio.gather(
+            *(
+                source.load_chapter(
+                    f"{server}/chapter", title_selector="h1.t", content_selector="article.c"
+                )
+                for _ in range(4)
+            )
+        )
+    assert all(page.title == "Chapter Title" for page in pages)

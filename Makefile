@@ -7,10 +7,11 @@ PYTHON ?= python3
 VENV := .venv
 BIN := $(VENV)/bin
 
-.PHONY: help setup check-tk lint fmt typecheck test test-fast test-browser run gui clean
+.PHONY: help setup deps check-tk lint fmt typecheck test test-fast test-browser run gui clean
 
 help:
-	@echo "setup        create $(VENV), install the package and dev extras, fetch Chromium"
+	@echo "setup        deps, plus Chromium and a Tk check (what you want locally)"
+	@echo "deps         create $(VENV) and install the package and dev extras only"
 	@echo "lint         ruff check + format check"
 	@echo "fmt          apply ruff formatting"
 	@echo "typecheck    mypy strict over src/"
@@ -24,9 +25,13 @@ help:
 $(BIN)/python:
 	$(PYTHON) -m venv $(VENV)
 
-setup: $(BIN)/python
+# Split out so CI's matrix jobs, which run only test-fast, do not each
+# download a browser they never launch.
+deps: $(BIN)/python
 	$(BIN)/python -m pip install --quiet --upgrade pip
 	$(BIN)/python -m pip install --quiet -e ".[dev]"
+
+setup: deps
 	$(BIN)/python -m playwright install chromium
 	@$(MAKE) --no-print-directory check-tk
 
