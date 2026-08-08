@@ -165,6 +165,16 @@ class Fetcher:
             min_interval=self._options.min_delay, clock=clock, sleep=self._sleep
         )
 
+    def set_sink(self, sink: Sink) -> None:
+        """Swap the sink before fetch().
+
+        The text exporter needs to know which chapters an earlier run already
+        wrote, and that is only known after the checkpoint has been consulted -
+        which in turn needs the link set, which needs collect(). So the sink is
+        chosen between collect() and fetch() rather than at construction.
+        """
+        self._sink = sink
+
     async def collect(self, toc_url: str, selectors: SelectorSet) -> CollectedLinks:
         """Load the TOC and vet its links. No chapter is fetched here.
 

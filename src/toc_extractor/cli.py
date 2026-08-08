@@ -18,13 +18,14 @@ from pathlib import Path
 from . import __version__
 from .browser import BrowserPageSource
 from .checkpoint import Checkpoint, announce, fingerprint, plan_resume
+from .exporters import DEFAULT_FORMAT, available, build_sink
 from .fetcher import Fetcher, FetchOptions
 from .logging import configure, get_logger
-from .models import ChapterRecord, RunResult
+from .models import ChapterRecord, PriorChapter, RunResult
 from .pagesource import PageError
 from .parser import SelectorSet
 from .politeness import RateLimiter, RobotsFetcher, build_url_guard, fetch_robots, origin_of
-from .sinks import NullSink, Sink, TextSink
+from .sinks import NullSink
 
 log = get_logger("cli")
 
@@ -65,6 +66,18 @@ def build_parser() -> argparse.ArgumentParser:
     output.add_argument("--out", default="downloads", help="Output folder (default: downloads)")
     output.add_argument(
         "--include-links", action="store_true", help="Include source URL in saved files"
+    )
+    output.add_argument(
+        "--format",
+        action="append",
+        dest="formats",
+        choices=available(),
+        metavar="FORMAT",
+        help=(
+            f"Output format, repeatable (default: {DEFAULT_FORMAT}). "
+            f"Choices: {', '.join(available())}. For EPUB, export markdown and "
+            f"run: pandoc book.md -o book.epub"
+        ),
     )
     output.add_argument(
         "--no-strip-ads",
@@ -203,15 +216,10 @@ async def run(
     else:
         source = source_factory()  # type: ignore[operator]
 
-    sink: Sink = (
-        NullSink() if args.dry_run else TextSink(output_dir, include_links=args.include_links)
-    )
-
     try:
         return await _extract(
             args,
             source=source,
-            sink=sink,
             guard=guard,
             robots=robots,
             limiter=limiter,
@@ -227,7 +235,6 @@ async def _extract(
     args: argparse.Namespace,
     *,
     source: object,
-    sink: Sink,
     guard: object,
     robots: object,
     limiter: RateLimiter,
@@ -246,7 +253,7 @@ async def _extract(
     fetcher = Fetcher(
         source,  # type: ignore[arg-type]
         guard=guard,  # type: ignore[arg-type]
-        sink=sink,
+        sink=NullSink(),
         options=options,
         limiter=limiter,
         robots=robots,  # type: ignore[arg-type]
@@ -299,6 +306,31 @@ async def _extract(
         )
     else:
         checkpoint.link_set = collected.kept
+
+    # Built here, not earlier: TextExporter has to know which chapters an
+    # earlier run already wrote, and that is only known once the checkpoint has
+    # been consulted. Snapshot it now, before this run starts adding entries.
+    previously_written = {
+        entry.index: PriorChapter(
+            index=entry.index,
+            url=entry.url,
+            output_name=entry.output_name,
+            title=entry.title,
+            bytes=entry.bytes,
+            sha256=entry.sha256,
+            stripped_urls=entry.stripped_urls,
+            fetched_at=entry.fetched_at,
+        )
+        for entry in checkpoint.completed.values()
+    }
+    fetcher.set_sink(
+        build_sink(
+            args.formats or [DEFAULT_FORMAT],
+            output_dir,
+            include_links=args.include_links,
+            resumed=previously_written,
+        )
+    )
 
     result = await fetcher.fetch(collected, selectors, already_done=already_done)
     checkpoint.save()

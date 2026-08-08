@@ -42,6 +42,26 @@ class ChapterRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class PriorChapter:
+    """A chapter an earlier run completed, as recalled from the checkpoint.
+
+    Carries what every exporter needs to render a resumed chapter. Without it
+    a resumed run could rebuild combined.txt but not the manifest, and a
+    manifest that silently omits half the book is the same partial-output
+    problem the merged file just had.
+    """
+
+    index: int
+    url: str
+    output_name: str
+    title: str
+    bytes: int
+    sha256: str
+    stripped_urls: int
+    fetched_at: str
+
+
+@dataclass(frozen=True, slots=True)
 class FailedChapter:
     """One chapter that could not be extracted, and why."""
 

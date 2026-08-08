@@ -60,10 +60,19 @@ class StubPageSource:
         *,
         clock: Callable[[], float] = time.monotonic,
         supports_capture: bool = False,
+        max_concurrent: int = 1,
     ) -> None:
         self._pages = dict(pages)
         self._clock = clock
         self._supports_capture = supports_capture
+        # A real page cannot serve two navigations at once: concurrent goto()
+        # calls abort each other with net::ERR_ABORTED. The stub defaulted to
+        # unlimited, so the fetcher happily drove one page from several workers
+        # and 447 passing tests said nothing. Modelling the limit here means a
+        # caller has to state how many pages it believes it has.
+        self._max_concurrent = max(1, max_concurrent)
+        self._in_flight = 0
+        self.max_observed_concurrency = 0
         self.loads: list[tuple[float, str]] = []
         self.closed = False
 
@@ -109,22 +118,37 @@ class StubPageSource:
         title_selector: str,
         content_selector: str,
     ) -> ChapterPage:
-        page, final_url = self._resolve(url)
-        if page.hang:
-            await asyncio.sleep(page.hang)
-        if page.missing_selector:
-            raise SelectorNotFound(f"{content_selector} matched nothing on {final_url}")
-        return ChapterPage(
-            requested_url=url,
-            final_url=final_url,
-            title=page.title,
-            body=page.body,
-        )
+        self._enter()
+        try:
+            page, final_url = self._resolve(url)
+            if page.hang:
+                await asyncio.sleep(page.hang)
+            if page.missing_selector:
+                raise SelectorNotFound(f"{content_selector} matched nothing on {final_url}")
+            return ChapterPage(
+                requested_url=url,
+                final_url=final_url,
+                title=page.title,
+                body=page.body,
+            )
+        finally:
+            self._in_flight -= 1
 
     async def aclose(self) -> None:
         self.closed = True
 
     # -- internals ----------------------------------------------------------
+
+    def _enter(self) -> None:
+        self._in_flight += 1
+        self.max_observed_concurrency = max(self.max_observed_concurrency, self._in_flight)
+        if self._in_flight > self._max_concurrent:
+            in_flight = self._in_flight
+            self._in_flight -= 1
+            raise PageError(
+                f"{in_flight} concurrent loads against {self._max_concurrent} page(s): "
+                f"a real page aborts the earlier navigation"
+            )
 
     def _resolve(self, url: str) -> tuple[StubPage, str]:
         self.loads.append((self._clock(), url))

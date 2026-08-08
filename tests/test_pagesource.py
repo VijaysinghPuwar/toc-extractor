@@ -141,3 +141,78 @@ def test_page_blocked_names_the_offending_hop() -> None:
     assert "169.254.169.254" in str(error)
     assert "private_address" in str(error)
     assert error.reason is RejectionReason.PRIVATE_ADDRESS
+
+
+# ---------------------------------------------------------------------------
+# Exclusivity: the constraint that made the page-sharing bug invisible
+# ---------------------------------------------------------------------------
+
+
+async def test_stub_refuses_concurrent_loads_on_one_page() -> None:
+    """A real page aborts the earlier navigation when a second goto() starts.
+
+    The stub had no notion of a busy resource, so BrowserPageSource driving one
+    shared page from three workers passed 447 tests and failed on the first
+    live run with net::ERR_ABORTED. Modelling the limit makes the stub able to
+    fail the way the real thing does.
+    """
+    import asyncio
+
+    source = StubPageSource({CH1: StubPage(hang=0.02)}, max_concurrent=1)
+    results = await asyncio.gather(
+        *(
+            source.load_chapter(CH1, title_selector="h1", content_selector="article")
+            for _ in range(3)
+        ),
+        return_exceptions=True,
+    )
+
+    failures = [r for r in results if isinstance(r, PageError)]
+    assert failures, "one page must not serve three concurrent loads"
+    assert "concurrent loads" in str(failures[0])
+
+
+async def test_stub_permits_concurrency_up_to_its_page_count() -> None:
+    import asyncio
+
+    source = StubPageSource({CH1: StubPage(hang=0.02)}, max_concurrent=3)
+    results = await asyncio.gather(
+        *(
+            source.load_chapter(CH1, title_selector="h1", content_selector="article")
+            for _ in range(3)
+        )
+    )
+    assert len(results) == 3
+    assert source.max_observed_concurrency == 3
+
+
+async def test_fetcher_over_a_single_page_stub_surfaces_the_conflict() -> None:
+    """End to end: the shape of the bug that reached production.
+
+    Concurrency 3 against a source that only has one page must not quietly
+    succeed.
+    """
+    import asyncio
+
+    from toc_extractor.fetcher import Fetcher, FetchOptions
+    from toc_extractor.parser import SelectorSet
+    from toc_extractor.politeness import RateLimiter, UrlGuard
+    from toc_extractor.sinks import NullSink
+
+    urls = [f"https://example.com/ch/{i}" for i in range(1, 5)]
+    pages = {TOC: StubPage(links=urls)}
+    for url in urls:
+        pages[url] = StubPage(hang=0.02)
+
+    source = StubPageSource(pages, max_concurrent=1)
+    fetcher = Fetcher(
+        source,
+        guard=UrlGuard(resolver=lambda _h: ["93.184.216.34"]),
+        sink=NullSink(),
+        options=FetchOptions(concurrency=3, retries=0, min_delay=0.0, wait_after_load=0.0),
+        limiter=RateLimiter(min_interval=0.0),
+    )
+    result = await fetcher.run(TOC, SelectorSet.create(link="a", title="h1", content="article"))
+
+    assert result.failed, "driving one page from three workers must not look healthy"
+    assert asyncio is not None

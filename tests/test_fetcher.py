@@ -14,12 +14,13 @@ from pathlib import Path
 
 import pytest
 
+from toc_extractor.exporters.text import TextExporter
 from toc_extractor.fetcher import Fetcher, FetchOptions, observed_intervals
-from toc_extractor.models import ChapterRecord
+from toc_extractor.models import ChapterRecord, PriorChapter
 from toc_extractor.pagesource import PageError, PageTimeout
 from toc_extractor.parser import SelectorSet
 from toc_extractor.politeness import RateLimiter, UrlGuard, parse_robots
-from toc_extractor.sinks import NullSink, TextSink
+from toc_extractor.sinks import NullSink
 
 from .stub import StubPage, StubPageSource
 
@@ -67,9 +68,10 @@ def build(
     if pages:
         catalogue.update(pages)
 
-    source = StubPageSource(catalogue, clock=clock.time)
-    sink = NullSink()
     options = FetchOptions(**option_kwargs)  # type: ignore[arg-type]
+    # One page per worker, matching what BrowserPageSource now allocates.
+    source = StubPageSource(catalogue, clock=clock.time, max_concurrent=options.concurrency)
+    sink = NullSink()
     limiter = RateLimiter(min_interval=options.min_delay, clock=clock.time, sleep=clock.sleep)
     fetcher = Fetcher(
         source,
@@ -264,7 +266,7 @@ async def test_separate_hosts_are_not_serialised_against_each_other() -> None:
         urls[1]: StubPage(title="B", body="b"),
     }
     clock = FakeClock()
-    source = StubPageSource(catalogue, clock=clock.time)
+    source = StubPageSource(catalogue, clock=clock.time, max_concurrent=2)
     limiter = RateLimiter(min_interval=5.0, clock=clock.time, sleep=clock.sleep)
     fetcher = Fetcher(
         source,
@@ -327,7 +329,7 @@ async def test_cancellation_mid_run_propagates_and_keeps_records_consistent() ->
     for position, url in enumerate(chapter_urls(20), start=1):
         catalogue[url] = StubPage(title=f"Chapter {position}", body="Body.", hang=0.02)
 
-    source = StubPageSource(catalogue)
+    source = StubPageSource(catalogue, max_concurrent=2)
     fetcher = Fetcher(
         source,
         guard=GUARD,
@@ -362,7 +364,7 @@ async def test_dry_run_fetches_nothing_and_writes_nothing(tmp_path: Path) -> Non
         catalogue[url] = StubPage()
 
     source = StubPageSource(catalogue)
-    sink = TextSink(output)
+    sink = TextExporter(output)
     fetcher = Fetcher(
         source,
         guard=GUARD,
@@ -434,8 +436,8 @@ async def test_robots_disallow_rejects_before_any_fetch() -> None:
 async def test_text_sink_reproduces_v1_layout(tmp_path: Path) -> None:
     output = tmp_path / "out"
     fetcher, _, _, _ = build(chapters=2, wait_after_load=0.0)
-    sink = TextSink(output)
-    fetcher._sink = sink
+    sink = TextExporter(output)
+    fetcher.set_sink(sink)
     await fetcher.run(TOC, SELECTORS)
 
     assert (output / "001 - Chapter 1.txt").read_text(encoding="utf-8") == (
@@ -452,8 +454,8 @@ async def test_combined_is_index_ordered_despite_concurrency(tmp_path: Path) -> 
     fetcher, _, _, _ = build(
         chapters=5, concurrency=5, min_delay=0.0, max_delay=0.0, wait_after_load=0.0
     )
-    sink = TextSink(output)
-    fetcher._sink = sink
+    sink = TextExporter(output)
+    fetcher.set_sink(sink)
     await fetcher.run(TOC, SELECTORS)
 
     combined = (output / "combined.txt").read_text(encoding="utf-8")
@@ -464,8 +466,8 @@ async def test_combined_is_index_ordered_despite_concurrency(tmp_path: Path) -> 
 async def test_text_sink_includes_source_when_asked(tmp_path: Path) -> None:
     output = tmp_path / "out"
     fetcher, _, _, _ = build(chapters=1, include_links=True, wait_after_load=0.0)
-    sink = TextSink(output, include_links=True)
-    fetcher._sink = sink
+    sink = TextExporter(output, include_links=True)
+    fetcher.set_sink(sink)
     await fetcher.run(TOC, SELECTORS)
 
     body = (output / "001 - Chapter 1.txt").read_text(encoding="utf-8")
@@ -479,8 +481,8 @@ async def test_text_sink_deduplicates_colliding_titles(tmp_path: Path) -> None:
         "https://example.com/ch/2": StubPage(title="chapter one", body="b"),
     }
     fetcher, _, _, _ = build(chapters=2, pages=pages, wait_after_load=0.0)
-    sink = TextSink(output)
-    fetcher._sink = sink
+    sink = TextExporter(output)
+    fetcher.set_sink(sink)
     await fetcher.run(TOC, SELECTORS)
 
     names = sorted(path.name for path in output.glob("*.txt"))
@@ -517,13 +519,30 @@ async def test_combined_survives_a_resumed_run(tmp_path: Path) -> None:
     output = tmp_path / "out"
 
     first, _, _, _ = build(chapters=5, max_links=3, wait_after_load=0.0)
-    first._sink = TextSink(output)
+    first._sink = TextExporter(output)
     await first.run(TOC, SELECTORS)
     assert (output / "combined.txt").read_text(encoding="utf-8").count("Chapter ") == 3
 
     done = {f"https://example.com/ch/{i}" for i in (1, 2, 3)}
+    # What the checkpoint recorded for the first run. Passed explicitly rather
+    # than rediscovered by globbing the directory: a glob would sweep in stray
+    # files, or a second book sharing this folder, and merge them in.
+    resumed = {
+        index: PriorChapter(
+            index=index,
+            url=f"https://example.com/ch/{index}",
+            output_name=f"{index:03d} - Chapter {index}.txt",
+            title=f"Chapter {index}",
+            bytes=0,
+            sha256="",
+            stripped_urls=0,
+            fetched_at=FIXED_TIME.isoformat(),
+        )
+        for index in (1, 2, 3)
+    }
+
     second, _, _, _ = build(chapters=5, wait_after_load=0.0)
-    second._sink = TextSink(output)
+    second.set_sink(TextExporter(output, resumed=resumed))
     second._already_done = lambda url: url in done
     await second.run(TOC, SELECTORS)
 

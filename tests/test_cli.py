@@ -324,3 +324,61 @@ async def test_checkpoint_records_the_output_name_not_just_the_url(tmp_path: Pat
     entry = checkpoint.completed["https://example.com/ch/2"]
     assert entry.output_name == "002 - Chapter 2.txt"
     assert entry.index == 2
+
+
+# ---------------------------------------------------------------------------
+# --format
+# ---------------------------------------------------------------------------
+
+
+async def test_default_format_is_text(tmp_path: Path) -> None:
+    await invoke(tmp_path)
+    names = {p.name for p in tmp_path.iterdir()}
+    assert "combined.txt" in names
+    assert "manifest.jsonl" not in names
+
+
+async def test_format_is_repeatable(tmp_path: Path) -> None:
+    await invoke(tmp_path, "--format", "text", "--format", "jsonl", "--format", "markdown")
+    names = {p.name for p in tmp_path.iterdir()}
+    assert {"combined.txt", "manifest.jsonl", "book.md"} <= names
+
+
+async def test_manifest_records_the_stripped_url_count(tmp_path: Path) -> None:
+    """The count has to survive the whole pipeline, not just CleanedText."""
+    pages = catalogue(1)
+    pages["https://example.com/ch/1"] = StubPage(
+        title="One", body="see https://a.com and https://b.com"
+    )
+    await invoke(tmp_path, "--format", "jsonl", pages=pages)
+
+    lines = [
+        json.loads(line)
+        for line in (tmp_path / "manifest.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert lines[0]["stripped_urls"] == 2
+    assert lines[-1]["total_stripped_urls"] == 2
+
+
+async def test_manifest_records_rejected_links(tmp_path: Path) -> None:
+    pages = catalogue(1)
+    pages[TOC] = StubPage(links=["https://example.com/ch/1", {}, "file:///etc/passwd"])
+    await invoke(tmp_path, "--format", "jsonl", pages=pages)
+
+    summary = json.loads((tmp_path / "manifest.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert summary["rejected"] == {"not_a_string": 1, "disallowed_scheme": 1}
+
+
+async def test_unknown_format_is_rejected_by_the_parser() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args([*BASE, "--format", "epub"])
+
+
+async def test_combined_survives_resume_through_the_cli(tmp_path: Path) -> None:
+    """The live-run bug, driven the way a user would hit it."""
+    await invoke(tmp_path, "--max", "3", pages=catalogue(6))
+    await invoke(tmp_path, "--max", "6", pages=catalogue(6))
+
+    combined = (tmp_path / "combined.txt").read_text(encoding="utf-8")
+    present = [i for i in range(1, 7) if f"Chapter {i}" in combined]
+    assert present == [1, 2, 3, 4, 5, 6]
