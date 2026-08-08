@@ -26,7 +26,6 @@ Two consequences fall out of that:
 
 from __future__ import annotations
 
-import contextlib
 from collections.abc import Sequence
 from pathlib import Path
 from types import TracebackType
@@ -37,6 +36,7 @@ from playwright.async_api import Browser, BrowserContext, Page, Route, async_pla
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 
+from .logging import get_logger
 from .pagesource import (
     ChapterPage,
     PageBlocked,
@@ -49,6 +49,8 @@ from .parser import LINK_COLLECTOR_JS
 from .politeness import RejectionReason, UrlGuard
 
 MAX_REDIRECT_HOPS = 20
+
+log = get_logger("browser")
 
 
 class _GuardedNavigation:
@@ -129,9 +131,12 @@ class BrowserPageSource:
     async def aclose(self) -> None:
         for closer in (self._context, self._browser):
             if closer is not None:
-                # Teardown must not mask the error that caused it.
-                with contextlib.suppress(PlaywrightError):
+                # Teardown must not mask the error that caused it, but a
+                # silently broken context is worth a line at debug.
+                try:
                     await closer.close()
+                except PlaywrightError as exc:
+                    log.debug("ignoring error while closing %s: %s", type(closer).__name__, exc)
         if self._playwright is not None:
             await self._playwright.stop()
         self._playwright = None
