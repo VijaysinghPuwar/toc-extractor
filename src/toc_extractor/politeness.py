@@ -205,6 +205,19 @@ class UrlGuard:
         return UrlVerdict(url=raw, allowed=True)
 
 
+def build_url_guard(*, allow_private_hosts: bool = False) -> UrlGuard:
+    """The one construction path for a UrlGuard outside tests.
+
+    Deliberately narrow. The only exemption the guard understands is the
+    all-or-nothing --allow-private-hosts switch: there is no per-origin
+    allowlist, no config key, and no constructor argument that could grow into
+    one. Tests that need to exempt a fixture server do it by subclassing in the
+    test module, which keeps the bypass unreachable from anything a user can
+    configure. test_guard_construction.py asserts that stays true.
+    """
+    return UrlGuard(allow_private_hosts=allow_private_hosts)
+
+
 @dataclass(frozen=True, slots=True)
 class RobotsRule:
     """One directive from robots.txt, with the line it came from."""
